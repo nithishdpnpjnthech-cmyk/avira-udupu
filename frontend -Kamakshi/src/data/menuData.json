@@ -1,0 +1,408 @@
+{
+  "mainMenuItems": [
+    {
+      "id": "sarees",
+      "title": "SAREES",
+      "type": "grouped",
+      "groups": [
+        {
+          "groupName": "By Fabric",
+          "items": [
+            { "name": "Silk Sarees", "path": "/product-collection-grid?fabric=silk" },
+            { "name": "Cotton Sarees", "path": "/product-collection-grid?fabric=cotton" },
+            { "name": "Georgette Sarees", "path": "/product-collection-grid?fabric=georgette" },
+            { "name": "Chiffon Sarees", "path": "/product-collection-grid?fabric=chiffon" },
+            { "name": "Linen Sarees", "path": "/product-collection-grid?fabric=linen" },
+            { "name": "Organza Sarees", "path": "/product-collection-grid?fabric=organza" },
+            { "name": "Kanjivaram Sarees", "path": "/product-collection-grid?fabric=kanjivaram" },
+            { "name": "Banarasi Sarees", "path": "/product-collection-grid?fabric=banarasi" }
+          ]
+        },
+        {
+          "groupName": "By Occasion",
+          "items": [
+            { "name": "Wedding Sarees", "path": "/product-collection-grid?occasion=wedding" },
+            { "name": "Party Wear Sarees", "path": "/product-collection-grid?occasion=party" },
+            { "name": "Casual Wear Sarees", "path": "/product-collection-grid?occasion=casual" },
+            { "name": "Festive Sarees", "path": "/product-collection-grid?occasion=festive" },
+            { "name": "Office Wear Sarees", "path": "/product-collection-grid?occasion=office" },
+            { "name": "Bridal Sarees", "path": "/product-collection-grid?occasion=bridal" }
+          ]
+        },
+        {
+          "groupName": "By Color",
+          "items": [
+            { "name": "Red Sarees", "path": "/product-collection-grid?color=red" },
+            { "name": "Blue Sarees", "path": "/product-collection-grid?color=blue" },
+            { "name": "Green Sarees", "path": "/product-collection-grid?color=green" },
+            { "name": "Black Sarees", "path": "/product-collection-grid?color=black" },
+            { "name": "White Sarees", "path": "/product-collection-grid?color=white" },
+            { "name": "Pink Sarees", "path": "/product-collection-grid?color=pink" },
+            { "name": "Yellow Sarees", "path": "/product-collection-grid?color=yellow" },
+            { "name": "Purple Sarees", "path": "/product-collection-grid?color=purple" }
+          ]
+        },
+        {
+          "groupName": "By Price Range",
+          "items": [
+            { "name": "Under ₹5000", "path": "/product-collection-grid?price=under-5000" },
+            { "name": "₹5000 - ₹10000", "path": "/product-collection-grid?price=5000-10000" },
+            { "name": "₹10000 - ₹20000", "path": "/product-collection-grid?price=10000-20000" },
+            { "name": "Above ₹20000", "path": "/product-collection-grid?price=above-20000" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "new-arrivals",
+      "title": "NEW ARRIVALS",
+      "type": "simple",
+      "items": [
+        { "name": "Fresh Soft Silk Sarees", "path": "/product-collection-grid?category=fresh-soft-silk" },
+        { "name": "Contemporary Pure Silk Sarees", "path": "/product-collection-grid?category=contemporary-pure-silk" },
+        { "name": "Latest Banarasi Silk Weaves", "path": "/product-collection-grid?category=latest-banarasi-silk" },
+        { "name": "New Kanjivaram Collections", "path": "/product-collection-grid?category=new-kanjivaram" },
+        { "name": "Trending Organza Sarees", "path": "/product-collection-grid?category=trending-organza" },
+        { "name": "Pastel Shade Silk Sarees", "path": "/product-collection-grid?category=pastel-shade-silk" },
+        { "name": "Lightweight Daily-Wear Sarees", "path": "/product-collection-grid?category=lightweight-daily-wear" },
+        { "name": "Modern Designer Border Sarees", "path": "/product-collection-grid?category=modern-designer-border" },
+        { "name": "New Arrival Linen Sarees", "path": "/product-collection-grid?category=new-arrival-linen" },
+        { "name": "Digital Print Sarees", "path": "/product-collection-grid?category=digital-print" },
+        { "name": "Premium Handloom Sarees", "path": "/product-collection-grid?category=premium-handloom" },
+        { "name": "Festive Zari Silk Sarees", "path": "/product-collection-grid?category=festive-zari-silk" },
+        { "name": "Party-Ready Saree Styles", "path": "/product-collection-grid?category=party-ready" },
+        { "name": "Embroidery Trend Sarees", "path": "/product-collection-grid?category=embroidery-trend" },
+        { "name": "Contemporary Minimalistic Sarees", "path": "/product-collection-grid?category=contemporary-minimalistic" },
+        { "name": "Satin Silk New Launches", "path": "/product-collection-grid?category=satin-silk-new" },
+        { "name": "Fresh Georgette Collections", "path": "/product-collection-grid?category=fresh-georgette" },
+        { "name": "Printed Cotton Sarees", "path": "/product-collection-grid?category=printed-cotton" },
+        { "name": "Chiffon New Arrival Sarees", "path": "/product-collection-grid?category=chiffon-new-arrival" },
+        { "name": "Tussar Silk Latest Editions", "path": "/product-collection-grid?category=tussar-silk-latest" },
+        { "name": "Velvet Saree New Drops", "path": "/product-collection-grid?category=velvet-new-drops" },
+        { "name": "Floral Print Sarees", "path": "/product-collection-grid?category=floral-print" },
+        { "name": "Sequence Work Sarees", "path": "/product-collection-grid?category=sequence-work" },
+        { "name": "Luxury Heritage Weaves", "path": "/product-collection-grid?category=luxury-heritage" },
+        { "name": "Soft Cotton Comfort Sarees", "path": "/product-collection-grid?category=soft-cotton-comfort" },
+        { "name": "Festive Border Collections", "path": "/product-collection-grid?category=festive-border" },
+        { "name": "Silk Blend New Arrivals", "path": "/product-collection-grid?category=silk-blend-new" },
+        { "name": "Lightweight Partywear Sarees", "path": "/product-collection-grid?category=lightweight-partywear" },
+        { "name": "Weavers New Drop Sarees", "path": "/product-collection-grid?category=weavers-new-drop" },
+        { "name": "Celebrity-Look Sarees", "path": "/product-collection-grid?category=celebrity-look" },
+        { "name": "Fusion Modern Saree Styles", "path": "/product-collection-grid?category=fusion-modern" },
+        { "name": "Royal Gold Zari Edit", "path": "/product-collection-grid?category=royal-gold-zari" },
+        { "name": "Elegant Temple Border Sarees", "path": "/product-collection-grid?category=elegant-temple-border" },
+        { "name": "Handpicked Trending Sarees", "path": "/product-collection-grid?category=handpicked-trending" },
+        { "name": "Signature Classic Sarees", "path": "/product-collection-grid?category=signature-classic" }
+      ]
+    },
+    {
+      "id": "shop-by-fabric",
+      "title": "SHOP BY FABRIC",
+      "type": "grouped",
+      "groups": [
+        {
+          "groupName": "By Occasion",
+          "items": [
+            { "name": "Wedding Silk Sarees", "path": "/product-collection-grid?occasion=wedding-silk" },
+            { "name": "Bridal Ajrakh Silk Sarees", "path": "/product-collection-grid?occasion=bridal-ajrakh" },
+            { "name": "Festival Pure Silk Sarees", "path": "/product-collection-grid?occasion=festival-pure-silk" },
+            { "name": "Partywear Georgette Sarees", "path": "/product-collection-grid?occasion=partywear-georgette" },
+            { "name": "Daily Wear Cotton Sarees", "path": "/product-collection-grid?occasion=daily-wear-cotton" },
+            { "name": "Office Wear Linen Sarees", "path": "/product-collection-grid?occasion=office-wear-linen" },
+            { "name": "Evening Party Satin Sarees", "path": "/product-collection-grid?occasion=evening-party-satin" },
+            { "name": "Temple Visit Traditional Sarees", "path": "/product-collection-grid?occasion=temple-traditional" },
+            { "name": "Reception Soft Silk Sarees", "path": "/product-collection-grid?occasion=reception-soft-silk" },
+            { "name": "Haldi Ceremony Yellow Silk Sarees", "path": "/product-collection-grid?occasion=haldi-yellow" },
+            { "name": "Sangeet Embroidery Sarees", "path": "/product-collection-grid?occasion=sangeet-embroidery" },
+            { "name": "Casual Lightweight Sarees", "path": "/product-collection-grid?occasion=casual-lightweight" },
+            { "name": "Anniversary Dinner Sarees", "path": "/product-collection-grid?occasion=anniversary-dinner" },
+            { "name": "Grand Function Zari Sarees", "path": "/product-collection-grid?occasion=grand-function-zari" },
+            { "name": "Summer-Friendly Cotton Sarees", "path": "/product-collection-grid?occasion=summer-friendly" },
+            { "name": "Winter Velvet Sarees", "path": "/product-collection-grid?occasion=winter-velvet" },
+            { "name": "Heritage Occasion Wear Sarees", "path": "/product-collection-grid?occasion=heritage-occasion" },
+            { "name": "Travel-Friendly Lightweight Sarees", "path": "/product-collection-grid?occasion=travel-friendly" }
+          ]
+        },
+        {
+          "groupName": "By Type",
+          "items": [
+            { "name": "Pure Silk Sarees", "path": "/product-collection-grid?type=pure-silk" },
+            { "name": "Banarasi Sarees", "path": "/product-collection-grid?type=banarasi" },
+            { "name": "Kanjivaram Sarees", "path": "/product-collection-grid?type=kanjivaram" },
+            { "name": "Ajrakh Print Sarees", "path": "/product-collection-grid?type=ajrakh-print" },
+            { "name": "Organza Sarees", "path": "/product-collection-grid?type=organza" },
+            { "name": "Chiffon Sarees", "path": "/product-collection-grid?type=chiffon" },
+            { "name": "Georgette Sarees", "path": "/product-collection-grid?type=georgette" },
+            { "name": "Linen Sarees", "path": "/product-collection-grid?type=linen" },
+            { "name": "Kota Sarees", "path": "/product-collection-grid?type=kota" },
+            { "name": "Tussar Sarees", "path": "/product-collection-grid?type=tussar" },
+            { "name": "Soft Silk Sarees", "path": "/product-collection-grid?type=soft-silk" },
+            { "name": "Cotton Sarees", "path": "/product-collection-grid?type=cotton" },
+            { "name": "Satin Sarees", "path": "/product-collection-grid?type=satin" },
+            { "name": "Tissue Silk Sarees", "path": "/product-collection-grid?type=tissue-silk" },
+            { "name": "Raw Silk Sarees", "path": "/product-collection-grid?type=raw-silk" },
+            { "name": "Art Silk Sarees", "path": "/product-collection-grid?type=art-silk" },
+            { "name": "Net Sarees", "path": "/product-collection-grid?type=net" },
+            { "name": "Semi-Silk Sarees", "path": "/product-collection-grid?type=semi-silk" }
+          ]
+        },
+        {
+          "groupName": "By Material",
+          "items": [
+            { "name": "Pure Silk", "path": "/product-collection-grid?material=pure-silk" },
+            { "name": "Silk Blend", "path": "/product-collection-grid?material=silk-blend" },
+            { "name": "Cotton Blend", "path": "/product-collection-grid?material=cotton-blend" },
+            { "name": "Pure Cotton", "path": "/product-collection-grid?material=pure-cotton" },
+            { "name": "Pure Linen", "path": "/product-collection-grid?material=pure-linen" },
+            { "name": "Organic Cotton", "path": "/product-collection-grid?material=organic-cotton" },
+            { "name": "Mulmul Cotton", "path": "/product-collection-grid?material=mulmul-cotton" },
+            { "name": "Kora Silk", "path": "/product-collection-grid?material=kora-silk" },
+            { "name": "Tussar Silk", "path": "/product-collection-grid?material=tussar-silk" },
+            { "name": "Modal Silk", "path": "/product-collection-grid?material=modal-silk" },
+            { "name": "Chanderi Cotton", "path": "/product-collection-grid?material=chanderi-cotton" },
+            { "name": "Satin Silk", "path": "/product-collection-grid?material=satin-silk" },
+            { "name": "Raw Silk", "path": "/product-collection-grid?material=raw-silk" },
+            { "name": "Crepe Silk", "path": "/product-collection-grid?material=crepe-silk" },
+            { "name": "Khadi Cotton", "path": "/product-collection-grid?material=khadi-cotton" },
+            { "name": "Velvet", "path": "/product-collection-grid?material=velvet" },
+            { "name": "Georgette", "path": "/product-collection-grid?material=georgette" },
+            { "name": "Chiffon", "path": "/product-collection-grid?material=chiffon" },
+            { "name": "Tissue Silk", "path": "/product-collection-grid?material=tissue-silk" },
+            { "name": "Art Silk", "path": "/product-collection-grid?material=art-silk" }
+          ]
+        },
+        {
+          "groupName": "By Colour",
+          "items": [
+            { "name": "Red Sarees", "path": "/product-collection-grid?color=red" },
+            { "name": "Maroon Sarees", "path": "/product-collection-grid?color=maroon" },
+            { "name": "Gold Sarees", "path": "/product-collection-grid?color=gold" },
+            { "name": "Black Sarees", "path": "/product-collection-grid?color=black" },
+            { "name": "Blue Sarees", "path": "/product-collection-grid?color=blue" },
+            { "name": "Navy Blue Sarees", "path": "/product-collection-grid?color=navy-blue" },
+            { "name": "Green Sarees", "path": "/product-collection-grid?color=green" },
+            { "name": "Emerald Green Sarees", "path": "/product-collection-grid?color=emerald-green" },
+            { "name": "Yellow Sarees", "path": "/product-collection-grid?color=yellow" },
+            { "name": "Mustard Sarees", "path": "/product-collection-grid?color=mustard" },
+            { "name": "Pink Sarees", "path": "/product-collection-grid?color=pink" },
+            { "name": "Baby Pink Sarees", "path": "/product-collection-grid?color=baby-pink" },
+            { "name": "Purple Sarees", "path": "/product-collection-grid?color=purple" },
+            { "name": "Lavender Sarees", "path": "/product-collection-grid?color=lavender" },
+            { "name": "Grey Sarees", "path": "/product-collection-grid?color=grey" },
+            { "name": "White Sarees", "path": "/product-collection-grid?color=white" },
+            { "name": "Beige Sarees", "path": "/product-collection-grid?color=beige" },
+            { "name": "Brown Sarees", "path": "/product-collection-grid?color=brown" },
+            { "name": "Peach Sarees", "path": "/product-collection-grid?color=peach" },
+            { "name": "Pastel Shade Sarees", "path": "/product-collection-grid?color=pastel" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wedding-bridal",
+      "title": "WEDDING & BRIDAL",
+      "type": "grouped",
+      "groups": [
+        {
+          "groupName": "By Occasion",
+          "items": [
+            { "name": "Bridal Muhurtham Sarees", "path": "/product-collection-grid?wedding-occasion=bridal-muhurtham" },
+            { "name": "Wedding Ceremony Silk Sarees", "path": "/product-collection-grid?wedding-occasion=wedding-ceremony" },
+            { "name": "Reception Grand Sarees", "path": "/product-collection-grid?wedding-occasion=reception-grand" },
+            { "name": "Haldi Yellow Sarees", "path": "/product-collection-grid?wedding-occasion=haldi-yellow" },
+            { "name": "Sangeet Partywear Sarees", "path": "/product-collection-grid?wedding-occasion=sangeet-partywear" },
+            { "name": "Mehendi Green Sarees", "path": "/product-collection-grid?wedding-occasion=mehendi-green" },
+            { "name": "Engagement Soft Silk Sarees", "path": "/product-collection-grid?wedding-occasion=engagement-soft-silk" },
+            { "name": "Anniversary Bridal Silks", "path": "/product-collection-grid?wedding-occasion=anniversary-bridal" },
+            { "name": "Temple Wedding Sarees", "path": "/product-collection-grid?wedding-occasion=temple-wedding" },
+            { "name": "Traditional South Indian Bridal Sarees", "path": "/product-collection-grid?wedding-occasion=south-indian-bridal" },
+            { "name": "Royal North Indian Wedding Sarees", "path": "/product-collection-grid?wedding-occasion=north-indian-wedding" },
+            { "name": "Evening Bridal Satin Sarees", "path": "/product-collection-grid?wedding-occasion=evening-bridal-satin" },
+            { "name": "Heritage Wedding Weaves", "path": "/product-collection-grid?wedding-occasion=heritage-wedding" },
+            { "name": "Premium Bridal Festive Sarees", "path": "/product-collection-grid?wedding-occasion=premium-bridal-festive" },
+            { "name": "Luxury Zari Ceremony Sarees", "path": "/product-collection-grid?wedding-occasion=luxury-zari-ceremony" },
+            { "name": "Bridal Photography Sarees", "path": "/product-collection-grid?wedding-occasion=bridal-photography" },
+            { "name": "Wedding Gift Saree Picks", "path": "/product-collection-grid?wedding-occasion=wedding-gift" },
+            { "name": "Elite Bridal Designer Sarees", "path": "/product-collection-grid?wedding-occasion=elite-bridal-designer" }
+          ]
+        },
+        {
+          "groupName": "By Type",
+          "items": [
+            { "name": "Bridal Kanjivaram Sarees", "path": "/product-collection-grid?wedding-type=bridal-kanjivaram" },
+            { "name": "Bridal Banarasi Sarees", "path": "/product-collection-grid?wedding-type=bridal-banarasi" },
+            { "name": "Bridal Soft Silk Sarees", "path": "/product-collection-grid?wedding-type=bridal-soft-silk" },
+            { "name": "Heavy Zari Bridal Sarees", "path": "/product-collection-grid?wedding-type=heavy-zari-bridal" },
+            { "name": "Ajrakh Bridal Silk Sarees", "path": "/product-collection-grid?wedding-type=ajrakh-bridal" },
+            { "name": "Bridal Organza Sarees", "path": "/product-collection-grid?wedding-type=bridal-organza" },
+            { "name": "Sequence Bridal Sarees", "path": "/product-collection-grid?wedding-type=sequence-bridal" },
+            { "name": "Embroidery Bridal Sarees", "path": "/product-collection-grid?wedding-type=embroidery-bridal" },
+            { "name": "Diamond Work Bridal Sarees", "path": "/product-collection-grid?wedding-type=diamond-work-bridal" },
+            { "name": "Stone Work Bridal Sarees", "path": "/product-collection-grid?wedding-type=stone-work-bridal" },
+            { "name": "Tissue Silk Bridal Sarees", "path": "/product-collection-grid?wedding-type=tissue-silk-bridal" },
+            { "name": "Bridal Chanderi Sarees", "path": "/product-collection-grid?wedding-type=bridal-chanderi" },
+            { "name": "Bridal Velvet Sarees", "path": "/product-collection-grid?wedding-type=bridal-velvet" },
+            { "name": "Handwoven Bridal Silk Sarees", "path": "/product-collection-grid?wedding-type=handwoven-bridal" },
+            { "name": "Pure Gold Zari Bridal Sarees", "path": "/product-collection-grid?wedding-type=pure-gold-zari-bridal" },
+            { "name": "Luxury Bridal Heritage Weaves", "path": "/product-collection-grid?wedding-type=luxury-bridal-heritage" },
+            { "name": "Temple Border Bridal Sarees", "path": "/product-collection-grid?wedding-type=temple-border-bridal" },
+            { "name": "Bridal Premium Satin Sarees", "path": "/product-collection-grid?wedding-type=bridal-premium-satin" }
+          ]
+        },
+        {
+          "groupName": "By Material",
+          "items": [
+            { "name": "Pure Silk Bridal Sarees", "path": "/product-collection-grid?wedding-material=pure-silk-bridal" },
+            { "name": "Silk Blend Bridal Sarees", "path": "/product-collection-grid?wedding-material=silk-blend-bridal" },
+            { "name": "Tissue Silk Bridal Sarees", "path": "/product-collection-grid?wedding-material=tissue-silk-bridal" },
+            { "name": "Kanjivaram Silk", "path": "/product-collection-grid?wedding-material=kanjivaram-silk" },
+            { "name": "Banarasi Silk", "path": "/product-collection-grid?wedding-material=banarasi-silk" },
+            { "name": "Tussar Silk Bridal", "path": "/product-collection-grid?wedding-material=tussar-silk-bridal" },
+            { "name": "Raw Silk Bridal Sarees", "path": "/product-collection-grid?wedding-material=raw-silk-bridal" },
+            { "name": "Organza Bridal", "path": "/product-collection-grid?wedding-material=organza-bridal" },
+            { "name": "Net Bridal Sarees", "path": "/product-collection-grid?wedding-material=net-bridal" },
+            { "name": "Velvet Bridal Sarees", "path": "/product-collection-grid?wedding-material=velvet-bridal" },
+            { "name": "Satin Silk Bridal Collection", "path": "/product-collection-grid?wedding-material=satin-silk-bridal" },
+            { "name": "Modal Silk Bridal Sarees", "path": "/product-collection-grid?wedding-material=modal-silk-bridal" },
+            { "name": "Kora Silk Wedding Sarees", "path": "/product-collection-grid?wedding-material=kora-silk-wedding" },
+            { "name": "Chanderi Silk Bridal Sarees", "path": "/product-collection-grid?wedding-material=chanderi-silk-bridal" },
+            { "name": "Crepe Silk Bridal", "path": "/product-collection-grid?wedding-material=crepe-silk-bridal" },
+            { "name": "Art Silk Bridal", "path": "/product-collection-grid?wedding-material=art-silk-bridal" },
+            { "name": "Zari-Rich Bridal Weaves", "path": "/product-collection-grid?wedding-material=zari-rich-bridal" },
+            { "name": "Pure Cotton Wedding Sarees", "path": "/product-collection-grid?wedding-material=pure-cotton-wedding" },
+            { "name": "Banarasi Kora Silk Bridal", "path": "/product-collection-grid?wedding-material=banarasi-kora-silk-bridal" },
+            { "name": "Luxury Soft Silk Bridal Sarees", "path": "/product-collection-grid?wedding-material=luxury-soft-silk-bridal" }
+          ]
+        },
+        {
+          "groupName": "By Colour",
+          "items": [
+            { "name": "Bridal Red Sarees", "path": "/product-collection-grid?wedding-color=bridal-red" },
+            { "name": "Bridal Maroon Sarees", "path": "/product-collection-grid?wedding-color=bridal-maroon" },
+            { "name": "Bridal Gold Sarees", "path": "/product-collection-grid?wedding-color=bridal-gold" },
+            { "name": "Bridal Pink Sarees", "path": "/product-collection-grid?wedding-color=bridal-pink" },
+            { "name": "Bridal Baby Pink Sarees", "path": "/product-collection-grid?wedding-color=bridal-baby-pink" },
+            { "name": "Bridal Green Sarees", "path": "/product-collection-grid?wedding-color=bridal-green" },
+            { "name": "Haldi Yellow Bridal Sarees", "path": "/product-collection-grid?wedding-color=haldi-yellow-bridal" },
+            { "name": "Mustard Wedding Sarees", "path": "/product-collection-grid?wedding-color=mustard-wedding" },
+            { "name": "Ivory Bridal Sarees", "path": "/product-collection-grid?wedding-color=ivory-bridal" },
+            { "name": "White & Gold Sarees", "path": "/product-collection-grid?wedding-color=white-gold" },
+            { "name": "Purple Bridal Sarees", "path": "/product-collection-grid?wedding-color=purple-bridal" },
+            { "name": "Wine Bridal Sarees", "path": "/product-collection-grid?wedding-color=wine-bridal" },
+            { "name": "Blue Bridal Sarees", "path": "/product-collection-grid?wedding-color=blue-bridal" },
+            { "name": "Navy Reception Sarees", "path": "/product-collection-grid?wedding-color=navy-reception" },
+            { "name": "Silver Bridal Sarees", "path": "/product-collection-grid?wedding-color=silver-bridal" },
+            { "name": "Peach Bridal Sarees", "path": "/product-collection-grid?wedding-color=peach-bridal" },
+            { "name": "Lavender Bridal Sarees", "path": "/product-collection-grid?wedding-color=lavender-bridal" },
+            { "name": "Multicolor Bridal Weaves", "path": "/product-collection-grid?wedding-color=multicolor-bridal" },
+            { "name": "Pastel Bridal Sarees", "path": "/product-collection-grid?wedding-color=pastel-bridal" },
+            { "name": "Black Bridal Sarees (for reception)", "path": "/product-collection-grid?wedding-color=black-bridal-reception" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "featured-collections",
+      "title": "FEATURED COLLECTIONS",
+      "type": "grouped",
+      "groups": [
+        {
+          "groupName": "By Occasion",
+          "items": [
+            { "name": "Festive Silk Collections", "path": "/product-collection-grid?featured-occasion=festive-silk" },
+            { "name": "Festival Gold Zari Edit", "path": "/product-collection-grid?featured-occasion=festival-gold-zari" },
+            { "name": "Partywear Featured Sarees", "path": "/product-collection-grid?featured-occasion=partywear-featured" },
+            { "name": "Office Elegance Saree Picks", "path": "/product-collection-grid?featured-occasion=office-elegance" },
+            { "name": "Wedding Featured Collection", "path": "/product-collection-grid?featured-occasion=wedding-featured" },
+            { "name": "Bridal Premium Picks", "path": "/product-collection-grid?featured-occasion=bridal-premium" },
+            { "name": "Everyday Comfort Sarees", "path": "/product-collection-grid?featured-occasion=everyday-comfort" },
+            { "name": "Puja Traditional Sarees", "path": "/product-collection-grid?featured-occasion=puja-traditional" },
+            { "name": "Gifting Saree Collection", "path": "/product-collection-grid?featured-occasion=gifting" },
+            { "name": "Anniversary Special Edit", "path": "/product-collection-grid?featured-occasion=anniversary-special" },
+            { "name": "Holiday Special Sarees", "path": "/product-collection-grid?featured-occasion=holiday-special" },
+            { "name": "Reception Featured Silks", "path": "/product-collection-grid?featured-occasion=reception-featured" },
+            { "name": "Temple Visit Classic Sarees", "path": "/product-collection-grid?featured-occasion=temple-visit-classic" },
+            { "name": "Celebrity Special Sarees", "path": "/product-collection-grid?featured-occasion=celebrity-special" },
+            { "name": "Seasonal Festive Sarees", "path": "/product-collection-grid?featured-occasion=seasonal-festive" },
+            { "name": "Summer-Friendly Sarees", "path": "/product-collection-grid?featured-occasion=summer-friendly-featured" },
+            { "name": "Winter Premium Sarees", "path": "/product-collection-grid?featured-occasion=winter-premium" },
+            { "name": "Heritage Occasion Edit", "path": "/product-collection-grid?featured-occasion=heritage-occasion" }
+          ]
+        },
+        {
+          "groupName": "By Type",
+          "items": [
+            { "name": "Handpicked Banarasi Weaves", "path": "/product-collection-grid?featured-type=handpicked-banarasi" },
+            { "name": "Premium Kanjivaram Silks", "path": "/product-collection-grid?featured-type=premium-kanjivaram" },
+            { "name": "Signature Soft Silk Series", "path": "/product-collection-grid?featured-type=signature-soft-silk" },
+            { "name": "Luxury Organza Edit", "path": "/product-collection-grid?featured-type=luxury-organza" },
+            { "name": "Heritage Linen Collection", "path": "/product-collection-grid?featured-type=heritage-linen" },
+            { "name": "Ajrakh Signature Collection", "path": "/product-collection-grid?featured-type=ajrakh-signature" },
+            { "name": "Limited Edition Silk Sarees", "path": "/product-collection-grid?featured-type=limited-edition-silk" },
+            { "name": "Tissue Silk Featured Edit", "path": "/product-collection-grid?featured-type=tissue-silk-featured" },
+            { "name": "Satin Silk Premium Picks", "path": "/product-collection-grid?featured-type=satin-silk-premium" },
+            { "name": "Pure Cotton Featured Sarees", "path": "/product-collection-grid?featured-type=pure-cotton-featured" },
+            { "name": "Chanderi Elite Collection", "path": "/product-collection-grid?featured-type=chanderi-elite" },
+            { "name": "Velvet Regal Collection", "path": "/product-collection-grid?featured-type=velvet-regal" },
+            { "name": "Designer Featured Sarees", "path": "/product-collection-grid?featured-type=designer-featured" },
+            { "name": "Woven Classic Weaves", "path": "/product-collection-grid?featured-type=woven-classic" },
+            { "name": "Embroidery Premium Sarees", "path": "/product-collection-grid?featured-type=embroidery-premium" },
+            { "name": "Pure Zari Saree Collection", "path": "/product-collection-grid?featured-type=pure-zari" },
+            { "name": "Exclusive Temple Weaves", "path": "/product-collection-grid?featured-type=exclusive-temple" },
+            { "name": "Elite Silk Story", "path": "/product-collection-grid?featured-type=elite-silk-story" }
+          ]
+        },
+        {
+          "groupName": "By Material",
+          "items": [
+            { "name": "Pure Silk Featured Collection", "path": "/product-collection-grid?featured-material=pure-silk-featured" },
+            { "name": "Silk Blend Featured Sarees", "path": "/product-collection-grid?featured-material=silk-blend-featured" },
+            { "name": "Pure Cotton Featured Sarees", "path": "/product-collection-grid?featured-material=pure-cotton-featured" },
+            { "name": "Organic Cotton Collection", "path": "/product-collection-grid?featured-material=organic-cotton-collection" },
+            { "name": "Linen Premium Series", "path": "/product-collection-grid?featured-material=linen-premium" },
+            { "name": "Modal Silk Featured Edit", "path": "/product-collection-grid?featured-material=modal-silk-featured" },
+            { "name": "Tussar Featured Silks", "path": "/product-collection-grid?featured-material=tussar-featured" },
+            { "name": "Kora Silk Signature Picks", "path": "/product-collection-grid?featured-material=kora-silk-signature" },
+            { "name": "Tissue Silk Exclusive Series", "path": "/product-collection-grid?featured-material=tissue-silk-exclusive" },
+            { "name": "Satin Premium Sarees", "path": "/product-collection-grid?featured-material=satin-premium" },
+            { "name": "Organza Elite Edit", "path": "/product-collection-grid?featured-material=organza-elite" },
+            { "name": "Raw Silk Featured Collection", "path": "/product-collection-grid?featured-material=raw-silk-featured" },
+            { "name": "Art Silk Premium Picks", "path": "/product-collection-grid?featured-material=art-silk-premium" },
+            { "name": "Georgette Signature Sarees", "path": "/product-collection-grid?featured-material=georgette-signature" },
+            { "name": "Chiffon Featured Collection", "path": "/product-collection-grid?featured-material=chiffon-featured" },
+            { "name": "Crepe Silk Premium Edit", "path": "/product-collection-grid?featured-material=crepe-silk-premium" },
+            { "name": "Velvet Signature Sarees", "path": "/product-collection-grid?featured-material=velvet-signature" },
+            { "name": "Banarasi Kora Silk Featured", "path": "/product-collection-grid?featured-material=banarasi-kora-featured" },
+            { "name": "Katan Silk Featured Sarees", "path": "/product-collection-grid?featured-material=katan-silk-featured" },
+            { "name": "Dupion Silk Signature Picks", "path": "/product-collection-grid?featured-material=dupion-silk-signature" }
+          ]
+        },
+        {
+          "groupName": "By Colour",
+          "items": [
+            { "name": "Gold Featured Sarees", "path": "/product-collection-grid?featured-color=gold-featured" },
+            { "name": "Maroon Prestige Collection", "path": "/product-collection-grid?featured-color=maroon-prestige" },
+            { "name": "Red Signature Sarees", "path": "/product-collection-grid?featured-color=red-signature" },
+            { "name": "Pink Featured Edit", "path": "/product-collection-grid?featured-color=pink-featured" },
+            { "name": "Peach Luxury Collection", "path": "/product-collection-grid?featured-color=peach-luxury" },
+            { "name": "Blue Featured Sarees", "path": "/product-collection-grid?featured-color=blue-featured" },
+            { "name": "Navy Elite Sarees", "path": "/product-collection-grid?featured-color=navy-elite" },
+            { "name": "Green Featured Collection", "path": "/product-collection-grid?featured-color=green-featured" },
+            { "name": "Yellow Festive Sarees", "path": "/product-collection-grid?featured-color=yellow-festive" },
+            { "name": "Mustard Premium Edit", "path": "/product-collection-grid?featured-color=mustard-premium" },
+            { "name": "Purple Royale Collection", "path": "/product-collection-grid?featured-color=purple-royale" },
+            { "name": "Lavender Pastel Series", "path": "/product-collection-grid?featured-color=lavender-pastel" },
+            { "name": "Orange Signature Picks", "path": "/product-collection-grid?featured-color=orange-signature" },
+            { "name": "White & Ivory Featured", "path": "/product-collection-grid?featured-color=white-ivory-featured" },
+            { "name": "Black Premium Sarees", "path": "/product-collection-grid?featured-color=black-premium" },
+            { "name": "Silver Elegant Sarees", "path": "/product-collection-grid?featured-color=silver-elegant" },
+            { "name": "Pastel Featured Series", "path": "/product-collection-grid?featured-color=pastel-featured" },
+            { "name": "Dual Tone Sarees", "path": "/product-collection-grid?featured-color=dual-tone" },
+            { "name": "Metallic Gold Silk Edit", "path": "/product-collection-grid?featured-color=metallic-gold-silk" },
+            { "name": "Multi-Color Premium Series", "path": "/product-collection-grid?featured-color=multi-color-premium" }
+          ]
+        }
+      ]
+    }
+  ]
+}

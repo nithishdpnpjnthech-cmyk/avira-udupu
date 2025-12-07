@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #d4af37;
+    --color-secondary: #1a1a1a;
+    --color-accent: #8b0000;
+    --color-background: #ffffff;
+    --color-foreground: #1a1a1a;
+    --radius: 0.5rem;
+  }
+}
+
+@layer components {
+  .premium-gradient {
+    @apply bg-gradient-to-r from-primary to-yellow-500;
+  }
+  
+  .premium-text-gradient {
+    @apply bg-gradient-to-r from-primary to-yellow-600 bg-clip-text text-transparent;
+  }
+  
+  .saree-card {
+    @apply transition-all duration-500 hover:shadow-2xl hover:-translate-y-2;
+  }
+  
+  .zoom-hover {
+    @apply overflow-hidden;
+  }
+  
+  .zoom-hover img {
+    @apply transition-transform duration-500 hover:scale-110;
+  }
+}

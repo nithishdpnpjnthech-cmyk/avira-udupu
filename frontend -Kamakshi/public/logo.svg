@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet">  <!-- Background -->
+
+  <defs/>  <rect width="200" height="200" fill="#001a4d"/>
+
+  <rect width="100%" height="100%" fill="#001a4d" />  
+
+  <!-- embed the jpeg as an <image> so components referencing /logo.svg keep working -->  <!-- Decorative Shield/Crest -->
+
+  <image href="/logo-favicon.jpeg" x="56" y="56" width="400" height="400" preserveAspectRatio="xMidYMid slice" />  <g transform="translate(100, 50)">
+
+</svg>    <!-- Shield shape -->
+    <path d="M 0 -35 C -20 -30 -25 -15 -25 0 C -25 20 0 35 0 35 C 0 35 25 20 25 0 C 25 -15 20 -30 0 -35 Z" 
+          fill="#d4af37" stroke="#d4af37" stroke-width="1"/>
+    
+    <!-- Swastika center (religious symbol) -->
+    <g transform="translate(0, 0)">
+      <circle cx="0" cy="0" r="6" fill="#001a4d"/>
+      <rect x="-2" y="-10" width="4" height="20" fill="#001a4d"/>
+      <rect x="-10" y="-2" width="20" height="4" fill="#001a4d"/>
+      <circle cx="8" cy="-8" r="2" fill="#001a4d"/>
+      <circle cx="-8" cy="-8" r="2" fill="#001a4d"/>
+      <circle cx="8" cy="8" r="2" fill="#001a4d"/>
+      <circle cx="-8" cy="8" r="2" fill="#001a4d"/>
+    </g>
+    
+    <!-- Decorative flourish left -->
+    <path d="M -28 -8 Q -35 -5 -32 5" stroke="#d4af37" stroke-width="2" fill="none" stroke-linecap="round"/>
+    
+    <!-- Decorative flourish right -->
+    <path d="M 28 -8 Q 35 -5 32 5" stroke="#d4af37" stroke-width="2" fill="none" stroke-linecap="round"/>
+    
+    <!-- Top crown points -->
+    <polygon points="0,-38 -5,-33 -2,-38 2,-33 5,-38" fill="#d4af37"/>
+  </g>
+  
+  <!-- AVIRA Text -->
+  <text x="100" y="135" font-family="'Playfair Display', serif" font-size="38" font-weight="700" 
+        text-anchor="middle" fill="#d4af37" letter-spacing="4">AVIRA</text>
+  
+  <!-- UDUPU Text -->
+  <text x="100" y="170" font-family="'Playfair Display', serif" font-size="24" font-weight="400" 
+        text-anchor="middle" fill="#d4af37" letter-spacing="8">UDUPU</text>
+  
+  <!-- Decorative line under AVIRA -->
+  <line x1="35" y1="145" x2="165" y2="145" stroke="#d4af37" stroke-width="1" opacity="0.6"/>
+</svg>
