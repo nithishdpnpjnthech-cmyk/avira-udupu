@@ -99,7 +99,7 @@ Neenu_Natural2-nishmithaNew/
 
 ## 🚀 Quick Start Commands
 
-### Start Backend (Port 8081)
+### Start Backend (Port 8080)
 ```bash
 cd backend
 mvn spring-boot:run
@@ -114,7 +114,7 @@ npm run dev
 
 ### Access Points
 - **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8081/api  
+- **Backend API**: http://localhost:8080/api  
 - **Admin Panel**: http://localhost:3000/admin-panel
 
 ## ✅ Benefits of New Structure
@@ -131,7 +131,7 @@ npm run dev
 
 1. **Backend Development**: Work in `/backend/` directory with Java/Spring Boot
 2. **Frontend Development**: Work in `/frontend/` directory with React/Vite
-3. **API Integration**: Frontend calls backend REST APIs at `http://localhost:8081/api`
+3. **API Integration**: Frontend calls backend REST APIs at `http://localhost:8080/api`
 4. **Database**: MySQL database managed by Spring Boot backend
 5. **Build Process**: Each part has its own build process and dependencies
 

@@ -58,7 +58,7 @@ npm run dev
 
 ### 3. Access the Application
 - **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8081/api
+- **Backend API**: http://localhost:8080/api
 - **Admin Panel**: http://localhost:3000/admin-panel
 
 ## 🔧 Detailed Setup

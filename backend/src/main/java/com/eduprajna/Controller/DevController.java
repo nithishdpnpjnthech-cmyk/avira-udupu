@@ -13,7 +13,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.eduprajna.entity.Category;
+import com.eduprajna.entity.Subcategory;
 import com.eduprajna.entity.User;
+import com.eduprajna.repository.CategoryRepository;
+import com.eduprajna.repository.SubcategoryRepository;
 import com.eduprajna.service.UserService;
 
 /**
@@ -22,15 +26,19 @@ import com.eduprajna.service.UserService;
  */
 @RestController
 @RequestMapping("/api/dev")
-@CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000", "https://nishmitha-roots.vercel.app"}, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000"}, allowCredentials = "true")
 public class DevController {
     
     private static final Logger logger = LoggerFactory.getLogger(DevController.class);
     
     private final UserService userService;
+    private final CategoryRepository categoryRepository;
+    private final SubcategoryRepository subcategoryRepository;
     
-    public DevController(UserService userService) {
+    public DevController(UserService userService, CategoryRepository categoryRepository, SubcategoryRepository subcategoryRepository) {
         this.userService = userService;
+        this.categoryRepository = categoryRepository;
+        this.subcategoryRepository = subcategoryRepository;
     }
     
     /**
@@ -109,6 +117,65 @@ public class DevController {
             logger.error("Error seeding database", e);
             return ResponseEntity.status(500).body(Map.of(
                 "error", "Failed to seed database",
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Seed subcategories under a single category (Pure Crepe Mysore Silk Saree)
+     */
+    @PostMapping("/seed-subcategories")
+    public ResponseEntity<?> seedSubcategories() {
+        try {
+            String categoryName = "Pure Crepe Mysore Silk Saree";
+            Category category = categoryRepository.findByName(categoryName)
+                .orElseGet(() -> {
+                    Category c = new Category();
+                    c.setName(categoryName);
+                    return categoryRepository.save(c);
+                });
+
+            String[] subcats = new String[] {
+                "Bentex 2D",
+                "Bentex 3D",
+                "Digital Print 2D",
+                "Bentex Silk",
+                "3D Pattern Saree",
+                "Partly Saree",
+                "Half-and-Half Saree",
+                "Ganda Berunda",
+                "Single-Line Border",
+                "Salli Line Design",
+                "Checks Pattern",
+                "Multi-Colour",
+                "Cutwork Embroidery Design",
+                "Mango Border",
+                "Dola Checks 3D Print"
+            };
+
+            int created = 0;
+            for (String name : subcats) {
+                if (subcategoryRepository.existsByNameAndCategoryId(name, category.getId())) {
+                    continue;
+                }
+                Subcategory sc = new Subcategory();
+                sc.setName(name);
+                sc.setCategory(category);
+                subcategoryRepository.save(sc);
+                created++;
+            }
+
+            return ResponseEntity.ok(Map.of(
+                "message", "Subcategories seeded",
+                "categoryId", category.getId(),
+                "category", category.getName(),
+                "created", created
+            ));
+        } catch (Exception e) {
+            logger.error("Error seeding subcategories", e);
+            return ResponseEntity.status(500).body(Map.of(
+                "error", "Failed to seed subcategories",
                 "message", e.getMessage()
             ));
         }

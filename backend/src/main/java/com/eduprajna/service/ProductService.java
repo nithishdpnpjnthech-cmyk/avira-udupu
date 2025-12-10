@@ -28,7 +28,20 @@ public class ProductService {
     private WishlistItemRepository wishlistItemRepository;
     
     public List<Product> getAll() { return productRepository.findAll(); }
-    public Product save(Product p) { return productRepository.save(p); }
+    public Product save(Product p) {
+        if (p.getVariants() != null) {
+            for (com.eduprajna.entity.ProductVariant v : p.getVariants()) {
+                v.setProduct(p);
+            }
+            if (!p.getVariants().isEmpty()) {
+                com.eduprajna.entity.ProductVariant first = p.getVariants().get(0);
+                p.setPrice(first.getPrice());
+                p.setOriginalPrice(first.getOriginalPrice());
+                p.setStockQuantity(first.getStockQuantity());
+            }
+        }
+        return productRepository.save(p);
+    }
     
     @Transactional
     public void delete(Long id) { 

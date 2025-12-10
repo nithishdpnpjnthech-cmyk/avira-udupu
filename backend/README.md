@@ -1,6 +1,6 @@
-# Roots Traditional - Backend
+# sanathana-parampara - Backend
 
-A Spring Boot REST API backend for Roots Traditional organic products e-commerce platform.
+A Spring Boot REST API backend for sanathana-parampara organic products e-commerce platform.
 
 ## 🚀 Features
 
@@ -31,13 +31,13 @@ A Spring Boot REST API backend for Roots Traditional organic products e-commerce
 2. **Database Setup**
    - Install MySQL and create a database:
    ```sql
-   CREATE DATABASE roots;
+   CREATE DATABASE sanathana-parampara;
    ```
 
 3. **Configuration**
    Update `src/main/resources/application.properties`:
    ```properties
-   spring.datasource.url=jdbc:mysql://localhost:3306/roots
+   spring.datasource.url=jdbc:mysql://localhost:3306/sanathana-parampara
    spring.datasource.username=your_username
    spring.datasource.password=your_password
    spring.jpa.hibernate.ddl-auto=update
@@ -58,8 +58,8 @@ A Spring Boot REST API backend for Roots Traditional organic products e-commerce
    ```
 
 5. **Access the API**
-   - API Base URL: `http://localhost:8081/api`
-   - Admin endpoints: `http://localhost:8081/api/admin/*`
+   - API Base URL: `http://localhost:8080/api`
+   - Admin endpoints: `http://localhost:8080/api/admin/*`
 
 ## 📁 Project Structure
 
@@ -71,7 +71,7 @@ src/main/java/com/eduprajna/
 ├── entity/            # JPA entity classes
 ├── repository/        # Data repository interfaces
 ├── service/           # Business logic services
-└── RootsApplication.java  # Main application class
+└── sanathana-paramparaApplication.java  # Main application class
 
 src/main/resources/
 ├── application.properties  # Application configuration
@@ -136,14 +136,14 @@ The application implements:
 
 2. **Run the JAR**
    ```bash
-   java -jar target/roots-0.0.1-SNAPSHOT.jar
+   java -jar target/sanathana-parampara-0.0.1-SNAPSHOT.jar
    ```
 
 3. **Docker Deployment** (Optional)
    ```dockerfile
    FROM openjdk:17-jdk-slim
-   COPY target/roots-0.0.1-SNAPSHOT.jar app.jar
-   EXPOSE 8081
+   COPY target/sanathana-parampara-0.0.1-SNAPSHOT.jar app.jar
+   EXPOSE 8080
    ENTRYPOINT ["java", "-jar", "/app.jar"]
    ```
 
@@ -158,35 +158,6 @@ mvn clean compile
 ```bash
 mvn test
 ```
-
-### Cloudinary image uploads (recommended)
-
-This project can upload product images to Cloudinary instead of storing them in the local `uploads/` folder.
-
-1. Create a Cloudinary account and get your credentials (cloud name, api key, api secret). The SDK supports a single `CLOUDINARY_URL` environment variable in the format:
-
-```
-cloudinary://<api_key>:<api_secret>@<cloud_name>
-```
-
-2. For local development on Windows PowerShell, set the env var before running the app:
-
-```powershell
-$env:CLOUDINARY_URL = 'cloudinary://12345:abcd@mycloud'
-mvn spring-boot:run
-```
-
-3. In production, set `CLOUDINARY_URL` in your host/environment (e.g., Vercel, Docker secrets, Kubernetes secrets).
-
-4. Test upload with curl (multipart/form-data):
-
-```bash
-curl -X POST "http://localhost:8081/api/admin/products" \
-   -F 'product={"name":"Test","price":10.0};type=application/json' \
-   -F "image=@/path/to/file.jpg"
-```
-
-After a successful upload the `imageUrl` field stored in the product will contain a Cloudinary secure URL which the frontend can use directly.
 
 ### Code Style
 Follow Spring Boot and Java best practices:

@@ -23,7 +23,7 @@ import com.eduprajna.service.UserService;
 
 @RestController
 @RequestMapping("/api/cart")
-@CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000", "https://nishmitha-roots.vercel.app"}, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000"}, allowCredentials = "true")
 public class CartController {
     private static final Logger logger = LoggerFactory.getLogger(CartController.class);
     
@@ -107,8 +107,23 @@ public class CartController {
             
             int quantity = body.get("quantity") == null ? 1 : ((Number) body.get("quantity")).intValue();
             
+            // Extract variant information if provided
+            Long variantId = body.get("variantId") != null ? ((Number) body.get("variantId")).longValue() : null;
+            String variantName = body.get("variant") != null ? (String) body.get("variant") : null;
+            Double weightValue = body.get("weightValue") != null ? ((Number) body.get("weightValue")).doubleValue() : null;
+            String weightUnit = body.get("weightUnit") != null ? (String) body.get("weightUnit") : null;
+            Double price = body.get("price") != null ? ((Number) body.get("price")).doubleValue() : null;
+            
             User user = requireUser(email);
-            CartItem ci = cartService.addToCart(user, productId, quantity);
+            
+            // If a variant is being added, remove all old items of the same product first
+            // This ensures only one variant of a product is in the cart at a time
+            if (variantId != null || variantName != null) {
+                logger.debug("Variant specified, removing old items of product {} for user: {}", productId, email);
+                cartService.removeItemByProductId(user, productId);
+            }
+            
+            CartItem ci = cartService.addToCart(user, productId, quantity, variantId, variantName, weightValue, weightUnit, price);
             
             logger.info("Added product {} to cart for user: {}", productId, email);
             return ResponseEntity.ok(toDTO(ci));

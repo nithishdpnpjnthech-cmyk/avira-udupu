@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -17,26 +18,23 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
-@Deprecated
-// This service stores files on the local filesystem. For production we recommend
-// using `CloudinaryStorageService` which uploads files to Cloudinary and returns
-// a remote URL. Keep this class only for local development/backwards compatibility.
 public class StorageService {
-    // Use project-relative uploads directory - resolve to absolute path to avoid multipart conflicts
-    private static final String UPLOAD_DIR = new File("./uploads").getAbsolutePath();
+    // Read upload directory from Spring property; fallback to ./uploads
+    @Value("${spring.servlet.multipart.location:./uploads}")
+    private String uploadDir;
 
     public String store(MultipartFile file) throws IOException {
         String filename = System.currentTimeMillis() + "_" + StringUtils.cleanPath(file.getOriginalFilename());
-        File dir = new File(UPLOAD_DIR);
-        if (!dir.exists()) dir.mkdirs();
-        File dest = new File(dir, filename);
-        file.transferTo(dest);
-        // Return an API-served relative path for DB so frontend can fetch via baseURL
-        return "/admin/products/images/" + filename; // served by ProductController
+        Path dirPath = Paths.get(uploadDir).toAbsolutePath().normalize();
+        Files.createDirectories(dirPath);
+        Path dest = dirPath.resolve(filename);
+        file.transferTo(dest.toFile());
+        // Return /uploads/ path to match database format and UploadController endpoint
+        return "/uploads/" + filename;
     }
 
     public Resource loadAsResource(String filename) throws IOException {
-        Path filePath = Paths.get(UPLOAD_DIR).resolve(filename).normalize();
+        Path filePath = Paths.get(uploadDir).resolve(filename).normalize();
         if (!Files.exists(filePath)) {
             throw new IOException("File not found: " + filename);
         }
@@ -55,7 +53,7 @@ public class StorageService {
 
     public MediaType probeMediaType(String filename) {
         try {
-            Path filePath = Paths.get(UPLOAD_DIR).resolve(filename).normalize();
+            Path filePath = Paths.get(uploadDir).resolve(filename).normalize();
             String type = Files.probeContentType(filePath);
             if (type != null) return MediaType.parseMediaType(type);
         } catch (Exception ignored) {}
@@ -64,7 +62,7 @@ public class StorageService {
 
     public List<String> listAll() {
         List<String> files = new ArrayList<>();
-        File dir = new File(UPLOAD_DIR);
+        File dir = Paths.get(uploadDir).toFile();
         if (dir.exists() && dir.isDirectory()) {
             File[] list = dir.listFiles();
             if (list != null) {
@@ -81,7 +79,7 @@ public class StorageService {
     // Delete a stored file by its filename, returns true if deleted or not present
     public boolean delete(String filename) {
         if (filename == null || filename.isEmpty()) return false;
-        File f = Paths.get(UPLOAD_DIR).resolve(filename).normalize().toFile();
+        File f = Paths.get(uploadDir).resolve(filename).normalize().toFile();
         if (!f.exists()) return true; // already gone
         return f.delete();
     }

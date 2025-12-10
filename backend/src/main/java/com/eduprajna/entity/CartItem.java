@@ -23,6 +23,25 @@ public class CartItem {
     @Column(nullable = false)
     private Double priceAtAdd; // snapshot price
 
+    // Variant-related fields
+    @Column(name = "variant_id")
+    private Long variantId; // ID of the selected variant
+    
+    @Column(name = "variant_name")
+    private String variantName; // e.g., "200ML" or color name
+    
+    @Column(name = "variant_image", length = 500)
+    private String variantImage; // Main image URL of the selected variant
+    
+    @Column(name = "variant_color", length = 50)
+    private String variantColor; // Color of the selected variant
+    
+    @Column(name = "weight_value")
+    private Double weightValue; // e.g., 200.0
+    
+    @Column(name = "weight_unit")
+    private String weightUnit; // e.g., "ml"
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public User getUser() { return user; }
@@ -33,6 +52,19 @@ public class CartItem {
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
     public Double getPriceAtAdd() { return priceAtAdd; }
     public void setPriceAtAdd(Double priceAtAdd) { this.priceAtAdd = priceAtAdd; }
+    
+    public Long getVariantId() { return variantId; }
+    public void setVariantId(Long variantId) { this.variantId = variantId; }
+    public String getVariantName() { return variantName; }
+    public void setVariantName(String variantName) { this.variantName = variantName; }
+    public String getVariantImage() { return variantImage; }
+    public void setVariantImage(String variantImage) { this.variantImage = variantImage; }
+    public String getVariantColor() { return variantColor; }
+    public void setVariantColor(String variantColor) { this.variantColor = variantColor; }
+    public Double getWeightValue() { return weightValue; }
+    public void setWeightValue(Double weightValue) { this.weightValue = weightValue; }
+    public String getWeightUnit() { return weightUnit; }
+    public void setWeightUnit(String weightUnit) { this.weightUnit = weightUnit; }
 }
 
  

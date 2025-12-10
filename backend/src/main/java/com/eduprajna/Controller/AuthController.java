@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,12 +18,20 @@ import com.eduprajna.service.UserService;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000", "https://nishmitha-roots.vercel.app"}, allowCredentials = "true")
+@CrossOrigin(origins = {
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://nishmitha-roots-7.onrender.com"
+}, allowCredentials = "true")
 public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     
     private final UserService userService;
-    public AuthController(UserService userService) { this.userService = userService; }
+    private final PasswordEncoder passwordEncoder;
+    public AuthController(UserService userService, PasswordEncoder passwordEncoder) {
+        this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
@@ -40,7 +49,24 @@ public class AuthController {
             Optional<User> userOpt = userService.findByEmail(email);
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
-                if (user.getPasswordHash() != null && user.getPasswordHash().equals(password)) {
+                String stored = user.getPasswordHash();
+
+                boolean isMatch = false;
+                if (stored != null) {
+                    // Support both legacy plain-text passwords and new bcrypt hashes
+                    if (stored.startsWith("$2")) {
+                        isMatch = passwordEncoder.matches(password, stored);
+                    } else {
+                        isMatch = stored.equals(password);
+                        // Optionally migrate to bcrypt on successful legacy login
+                        if (isMatch) {
+                            user.setPasswordHash(passwordEncoder.encode(password));
+                            userService.save(user);
+                        }
+                    }
+                }
+
+                if (isMatch) {
                     logger.info("Successful login for user: {}", email);
                     return ResponseEntity.ok(Map.of(
                         "id", user.getId(),
@@ -67,9 +93,7 @@ public class AuthController {
             String email = body.get("email");
             String password = body.get("password");
             String phone = body.get("phone");
-            // Normalize phone if provided
-            phone = normalizeIndianPhone(phone);
-            String role = body.getOrDefault("role", "user");
+            String role = body.getOrDefault("role", "customer");
 
             if (name == null || email == null || password == null) {
                 logger.warn("Missing required fields in registration request");
@@ -85,7 +109,7 @@ public class AuthController {
             User user = new User();
             user.setName(name);
             user.setEmail(email);
-            user.setPasswordHash(password); // In production, hash the password!
+            user.setPasswordHash(passwordEncoder.encode(password));
             user.setPhone(phone);
             user.setRole(role);
             
@@ -100,26 +124,5 @@ public class AuthController {
             logger.error("Error during registration for email: {}", body.get("email"), e);
             return ResponseEntity.status(500).body("Internal server error during registration");
         }
-
     }
-
-    private static String normalizeIndianPhone(String input) {
-            if (input == null) return null;
-            String s = input.trim();
-            s = s.replaceAll("[\\s\\-()]+", "");
-            if (s.startsWith("+")) {
-                String digits = s.replaceAll("[^+0-9]", "");
-                if (digits.startsWith("+91") && digits.length() == 13) return digits;
-                String only = s.replaceAll("\\D", "");
-                if (only.length() == 12 && only.startsWith("91")) return "+" + only;
-                return null;
-            } else {
-                String only = s.replaceAll("\\D", "");
-                if (only.length() == 10) return only;
-                if (only.length() == 11 && only.startsWith("0")) return only.substring(1);
-                if (only.length() == 12 && only.startsWith("91")) return only.substring(2);
-                return null;
-            }
-        }
-
-    }
+}

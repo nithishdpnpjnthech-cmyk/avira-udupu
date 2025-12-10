@@ -11,25 +11,30 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
-        // Serve files from project uploads directory at /uploads/** URL pattern
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("classpath:/static/uploads/", "file:./uploads/");
+        // CRITICAL: Do NOT use /** handler - it intercepts ALL requests including API calls
+        // This causes infinite forwarding loops in Spring dispatcher
         
-        // Also serve files from runtime uploads directory for admin product images
-        registry.addResourceHandler("/admin/products/images/**")
-                .addResourceLocations("file:./uploads/", "classpath:/static/uploads/");
+        // Serve uploaded files from dedicated /uploads/** path ONLY
+        String uploadDir = System.getProperty("upload.dir", "./uploads");
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:" + uploadDir + "/")
+                .setCachePeriod(86400); // 1 day cache for uploads
+        
+        // Serve static frontend files ONLY from /static/** path
+        // This prevents intercepting API requests like /api/admin/products/{id}
+        registry.addResourceHandler("/static/**")
+                .addResourceLocations("classpath:/static/", "file:./static/")
+                .setCachePeriod(31556926); // 1 year cache for static assets
     }
 
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/api/**")
                 .allowedOrigins(
-                    "http://localhost:3000",
+                    "http://localhost:3000", 
                     "http://127.0.0.1:3000",
-                    "https://nishmitha-roots.vercel.app",
-                    // Production frontend domains
-                    "https://rootstraditional.in",
-                    "https://www.rootstraditional.in"
+                    "https://*.onrender.com",
+                    "https://your-app-name.onrender.com"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")

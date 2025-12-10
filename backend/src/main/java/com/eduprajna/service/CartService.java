@@ -24,7 +24,7 @@ public class CartService {
         return cartRepo.findByUser(user);
     }
 
-    public CartItem addToCart(User user, Long productId, int quantity) {
+    public CartItem addToCart(User user, Long productId, int quantity, Long variantId, String variantName, Double weightValue, String weightUnit, Double price) {
         Product product = productRepo.findById(productId).orElseThrow();
         Integer stockQty = product.getStockQuantity();
         boolean explicitlyOutOfStock = product.getInStock() != null && !product.getInStock();
@@ -42,8 +42,14 @@ public class CartService {
             CartItem ci = new CartItem();
             ci.setUser(user);
             ci.setProduct(product);
-            ci.setPriceAtAdd(product.getPrice() != null ? product.getPrice().doubleValue() : 0.0);
+            // Use provided price if available, otherwise use product price
+            ci.setPriceAtAdd(price != null ? price : (product.getPrice() != null ? product.getPrice().doubleValue() : 0.0));
             ci.setQuantity(0);
+            // Store variant information
+            ci.setVariantId(variantId);
+            ci.setVariantName(variantName);
+            ci.setWeightValue(weightValue);
+            ci.setWeightUnit(weightUnit);
             return ci;
         });
         int current = item.getQuantity() == null ? 0 : item.getQuantity();
@@ -52,7 +58,37 @@ public class CartService {
             throw new IllegalStateException("Stock limit exceeded. Available: " + stockQty);
         }
         item.setQuantity(Math.max(1, newQty));
+        // Update price and variant info if provided
+        if (price != null) {
+            item.setPriceAtAdd(price);
+        }
+        if (variantName != null) {
+            item.setVariantName(variantName);
+        }
+        if (variantId != null) {
+            item.setVariantId(variantId);
+        }
+        if (weightValue != null) {
+            item.setWeightValue(weightValue);
+        }
+        if (weightUnit != null) {
+            item.setWeightUnit(weightUnit);
+        }
         return cartRepo.save(item);
+    }
+    
+    // Keep the old signature for backward compatibility
+    public CartItem addToCart(User user, Long productId, int quantity) {
+        return addToCart(user, productId, quantity, null, null, null, null, null);
+    }
+    
+    public void removeItemByProductId(User user, Long productId) {
+        List<CartItem> items = cartRepo.findByUser(user);
+        for (CartItem item : items) {
+            if (item.getProduct().getId().equals(productId)) {
+                cartRepo.delete(item);
+            }
+        }
     }
 
     public CartItem updateQuantity(User user, Long productId, int quantity) {

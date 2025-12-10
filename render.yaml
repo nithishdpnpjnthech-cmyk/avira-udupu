@@ -11,7 +11,7 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
       - key: PORT
-        value: 8081
+        value: 8080
       - key: SPRING_DATASOURCE_URL
         value: jdbc:postgresql://ep-quiet-mud-adzylpm4-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
       - key: SPRING_DATASOURCE_USERNAME
