@@ -157,11 +157,20 @@ const PaymentForm = ({ onNext, onBack, orderTotal, paymentMethod: initialPayment
     }
 
     try {
-      // Save payment method to backend
+      // Save payment method and totals to backend
       if (user?.email) {
-        await checkoutApi.saveSelection(user.email, {
+        const selectionData = {
           paymentMethod: paymentMethod
-        });
+        };
+        
+        // Include totals if available from props
+        if (orderTotal && typeof orderTotal === 'object') {
+          selectionData.subtotal = orderTotal.subtotal;
+          selectionData.shippingFee = orderTotal.shippingCost;
+          selectionData.total = orderTotal.total;
+        }
+        
+        await checkoutApi.saveSelection(user.email, selectionData);
         console.log('Payment method saved:', paymentMethod);
       }
 
@@ -251,19 +260,24 @@ const PaymentForm = ({ onNext, onBack, orderTotal, paymentMethod: initialPayment
 
           console.log('Payment verified successfully');
 
-          // Proceed to order review
-          const paymentData = {
+          // For online payment, the order is already placed on backend
+          // Navigate to order success/confirmation page
+          if (setParentPaymentMethod) {
+            setParentPaymentMethod({
+              method: 'online',
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id
+            });
+          }
+
+          // Skip to order confirmation - the order is already created with 'paid' status
+          // We can use onNext with a special flag to skip the review step
+          onNext({
             method: 'online',
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
-            savePaymentMethod
-          };
-
-          if (setParentPaymentMethod) {
-            setParentPaymentMethod(paymentData);
-          }
-
-          onNext(paymentData);
+            skipReview: true  // Flag to indicate we should skip review step
+          });
         } catch (error) {
           console.error('Payment verification error:', error);
           setErrors({ submit: error.message || 'Payment verification failed. Please contact support.' });

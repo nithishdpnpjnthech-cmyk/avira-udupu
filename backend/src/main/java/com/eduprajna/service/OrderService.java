@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -129,6 +130,97 @@ public class OrderService {
         logger.info("Cart cleared for user: {}", user.getEmail());
         
         // 10. Update user's order count
+        user.incrementTotalOrders();
+        
+        return savedOrder;
+    }
+
+    /**
+     * Place an order for online payment after signature verification
+     * This method doesn't require cart items as they are already stored in checkout selection
+     * @param user The user placing the order
+     * @return The created order
+     */
+    @Transactional
+    public Order placeOrderForOnlinePayment(User user) {
+        logger.debug("Placing order for online payment user: {}", user.getEmail());
+        
+        // Get checkout selection with totals
+        CheckoutSelection selection = selectionRepo.findByUser(user)
+            .orElseThrow(() -> new IllegalStateException("No checkout selection found"));
+        
+        // Get selected address
+        Address address = addressRepo.findById(selection.getAddressId())
+            .orElseThrow(() -> new IllegalStateException("Selected address not found"));
+        
+        // Create order using checkout selection data
+        Order order = new Order();
+        order.setUser(user);
+        order.setDeliveryOption(selection.getDeliveryOption());
+        order.setPaymentMethod(selection.getPaymentMethod());
+        
+        // Create shipping snapshot
+        ShippingSnapshot shippingSnapshot = new ShippingSnapshot();
+        shippingSnapshot.setName(address.getName());
+        shippingSnapshot.setPhone(address.getPhone());
+        shippingSnapshot.setStreet(address.getStreet());
+        shippingSnapshot.setCity(address.getCity());
+        shippingSnapshot.setState(address.getState());
+        shippingSnapshot.setPincode(address.getPincode());
+        shippingSnapshot.setLandmark(address.getLandmark());
+        shippingSnapshot.setAddressType(address.getAddressType());
+        order.setShipping(shippingSnapshot);
+        
+        // Use totals from checkout selection
+        Double subtotal = selection.getSubtotal();
+        Double shippingFee = selection.getShippingFee();
+        Double total = selection.getTotal();
+        
+        if (subtotal == null || shippingFee == null || total == null) {
+            throw new IllegalStateException("Order totals not found in checkout selection");
+        }
+        
+        order.setSubtotal(subtotal);
+        order.setShippingFee(shippingFee);
+        order.setTotal(total);
+        
+        // Try to get cart items if they still exist, otherwise create empty order
+        List<CartItem> cart = cartRepo.findByUser(user);
+        
+        if (!cart.isEmpty()) {
+            // Create order items from cart
+            List<OrderItem> orderItems = cart.stream().map(cartItem -> {
+                OrderItem orderItem = new OrderItem();
+                orderItem.setOrder(order);
+                orderItem.setProduct(cartItem.getProduct());
+                orderItem.setQuantity(cartItem.getQuantity());
+                orderItem.setPrice(cartItem.getPriceAtAdd());
+                
+                // Decrement stock
+                Product product = cartItem.getProduct();
+                int available = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
+                int qty = cartItem.getQuantity() != null ? cartItem.getQuantity() : 0;
+                int newQty = Math.max(available - qty, 0);
+                product.setStockQuantity(newQty);
+                product.setInStock(newQty > 0);
+                productRepo.save(product);
+                return orderItem;
+            }).collect(Collectors.toList());
+            order.setItems(orderItems);
+            
+            // Clear cart after order creation
+            cartRepo.deleteByUser(user);
+            logger.info("Cart cleared for user: {}", user.getEmail());
+        } else {
+            logger.warn("No cart items found for online payment order, creating empty order items list");
+            order.setItems(new ArrayList<>());
+        }
+        
+        // Save order
+        Order savedOrder = orderRepo.save(order);
+        logger.info("Online payment order created with ID: {} for user: {}", savedOrder.getId(), user.getEmail());
+        
+        // Update user's order count
         user.incrementTotalOrders();
         
         return savedOrder;

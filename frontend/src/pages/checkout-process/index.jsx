@@ -229,7 +229,15 @@ const CheckoutProcess = () => {
 
         case 3: // Order Review
           setPaymentData(stepData);
-          // Load order review data from backend
+          
+          // Skip review step for online payments (order already created)
+          if (stepData?.skipReview) {
+            console.log('Skipping review for online payment, order already placed');
+            setCurrentStep(5); // Go to success/completion
+            break;
+          }
+          
+          // Load order review data from backend for other payment methods
           if (user?.email) {
             const reviewData = await checkoutApi.review(user.email);
             setOrderReviewData(reviewData);
@@ -353,7 +361,7 @@ const CheckoutProcess = () => {
           <PaymentForm
             onNext={handleStepNext}
             onBack={handleStepBack}
-            orderTotal={total}
+            orderTotal={{ subtotal, shippingCost, total }}
             paymentMethod={paymentData?.method}
             setPaymentMethod={setPaymentData}
             user={user}
@@ -373,6 +381,39 @@ const CheckoutProcess = () => {
             isProcessing={isProcessing}
             error={error}
           />
+        );
+      case 5: // Success/Completion Step (for online payments)
+        return (
+          <div className="min-h-screen bg-background py-12">
+            <div className="container mx-auto px-4">
+              <div className="max-w-2xl mx-auto">
+                <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+                  <div className="mb-6">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full">
+                      <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-4">Payment Successful!</h1>
+                  <p className="text-lg text-gray-600 mb-2">Your order has been placed successfully.</p>
+                  <p className="text-gray-500 mb-8">Payment ID: {paymentData?.razorpay_payment_id}</p>
+                  <Button
+                    onClick={() => navigate('/user-account-dashboard')}
+                    className="bg-primary text-white px-8 py-3 rounded-lg hover:bg-primary/90"
+                  >
+                    View My Orders
+                  </Button>
+                  <button
+                    onClick={() => navigate('/')}
+                    className="ml-4 px-8 py-3 border border-primary text-primary rounded-lg hover:bg-primary/5"
+                  >
+                    Continue Shopping
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         );
       default:
         return null;

@@ -19,7 +19,16 @@ public class CheckoutSelection {
     private String deliveryOption; // standard, express
 
     @Column(nullable = false)
-    private String paymentMethod; // cod, card, upi, wallet
+    private String paymentMethod; // cod, card, upi, wallet, online
+
+    @Column(nullable = true)
+    private Double subtotal; // Cart subtotal at checkout time
+
+    @Column(nullable = true)
+    private Double shippingFee; // Shipping fee at checkout time
+
+    @Column(nullable = true)
+    private Double total; // Total amount at checkout time
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -31,6 +40,13 @@ public class CheckoutSelection {
     public void setDeliveryOption(String deliveryOption) { this.deliveryOption = deliveryOption; }
     public String getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    public Double getSubtotal() { return subtotal; }
+    public void setSubtotal(Double subtotal) { this.subtotal = subtotal; }
+    public Double getShippingFee() { return shippingFee; }
+    public void setShippingFee(Double shippingFee) { this.shippingFee = shippingFee; }
+    public Double getTotal() { return total; }
+    public void setTotal(Double total) { this.total = total; }
 }
+
 
 

@@ -1,6 +1,7 @@
 import apiClient from './api';
 
-const API_BASE = 'https://nishmitha-roots-7.onrender.com/api/payments/razorpay';
+// Use the shared API base URL from api.js
+const API_BASE = 'http://localhost:8080/api/payments/razorpay';
 
 const paymentApi = {
   /**
@@ -40,7 +41,7 @@ const paymentApi = {
   verifyPayment: async (paymentData) => {
     try {
       const response = await fetch(
-        `${API_BASE}/verify-payment`,
+        `${API_BASE}/verify`,
         {
           method: 'POST',
           headers: {

@@ -114,6 +114,17 @@ public class CheckoutController {
                 logger.debug("Updated payment method: {}", paymentMethod);
             }
             
+            // Store totals if provided (for payment processing)
+            if (body.get("subtotal") != null) {
+                selection.setSubtotal(((Number) body.get("subtotal")).doubleValue());
+            }
+            if (body.get("shippingFee") != null) {
+                selection.setShippingFee(((Number) body.get("shippingFee")).doubleValue());
+            }
+            if (body.get("total") != null) {
+                selection.setTotal(((Number) body.get("total")).doubleValue());
+            }
+            
             CheckoutSelection saved = selectionRepo.save(selection);
             logger.info("Checkout selection saved for user: {}", email);
             return ResponseEntity.ok(saved);
@@ -142,7 +153,7 @@ public class CheckoutController {
      */
     private boolean isValidPaymentMethod(String method) {
         return method != null && (method.equals("cod") || method.equals("card") || 
-                                 method.equals("upi") || method.equals("wallet"));
+                                 method.equals("upi") || method.equals("wallet") || method.equals("online"));
     }
 
     /**

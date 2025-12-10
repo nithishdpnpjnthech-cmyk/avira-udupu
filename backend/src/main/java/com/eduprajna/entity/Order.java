@@ -4,6 +4,8 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -25,6 +27,7 @@ public class Order {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties({"orders", "password", "addresses"})
     private User user;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -37,7 +40,7 @@ public class Order {
     private String deliveryOption; // standard, express
 
     @Column(nullable = false)
-    private String paymentMethod; // cod, card, upi, wallet
+    private String paymentMethod; // cod, card, upi, wallet, online
 
     @Column(nullable = false)
     private String status = "pending";

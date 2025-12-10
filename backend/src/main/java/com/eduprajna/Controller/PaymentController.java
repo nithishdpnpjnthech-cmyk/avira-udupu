@@ -75,28 +75,35 @@ public class PaymentController {
                 return ResponseEntity.badRequest().body("Selected address not found. Please select a valid address.");
             }
 
-            // Get cart and compute totals
-            java.util.List<com.eduprajna.entity.CartItem> cart = cartService.getCart(user);
-            if (cart == null || cart.isEmpty()) {
-                return ResponseEntity.badRequest().body("Your cart is empty. Please add items before checkout.");
+            // Use totals from checkout selection (stored when user completed checkout form)
+            Double subtotal = selection.getSubtotal();
+            Double shippingFee = selection.getShippingFee();
+            Double total = selection.getTotal();
+
+            // Fallback: If totals not stored, try to calculate from current cart
+            if (subtotal == null || total == null) {
+                java.util.List<com.eduprajna.entity.CartItem> cart = cartService.getCart(user);
+                if (cart == null || cart.isEmpty()) {
+                    return ResponseEntity.badRequest().body("Your cart is empty. Please add items before checkout.");
+                }
+
+                // Calculate subtotal using cart item prices, with fallback to product price
+                subtotal = 0.0;
+                for (com.eduprajna.entity.CartItem ci : cart) {
+                    double price = ci.getPriceAtAdd() != null && ci.getPriceAtAdd() > 0 ? ci.getPriceAtAdd() : 
+                                   (ci.getProduct().getPrice() != null ? ci.getProduct().getPrice().doubleValue() : 0.0);
+                    subtotal += price * ci.getQuantity();
+                    logger.debug("Cart item: product={}, quantity={}, price={}, line_total={}", 
+                        ci.getProduct().getName(), ci.getQuantity(), price, price * ci.getQuantity());
+                }
+                
+                shippingFee = "express".equalsIgnoreCase(selection.getDeliveryOption()) ? 100.0 : 50.0;
+                total = subtotal + shippingFee;
             }
 
-            // Calculate subtotal using cart item prices, with fallback to product price
-            double subtotal = 0.0;
-            for (com.eduprajna.entity.CartItem ci : cart) {
-                double price = ci.getPriceAtAdd() != null && ci.getPriceAtAdd() > 0 ? ci.getPriceAtAdd() : 
-                               (ci.getProduct().getPrice() != null ? ci.getProduct().getPrice().doubleValue() : 0.0);
-                subtotal += price * ci.getQuantity();
-                logger.debug("Cart item: product={}, quantity={}, price={}, line_total={}", 
-                    ci.getProduct().getName(), ci.getQuantity(), price, price * ci.getQuantity());
-            }
-            logger.debug("Calculated subtotal: {}", subtotal);
-            
-            double shippingFee = "express".equalsIgnoreCase(selection.getDeliveryOption()) ? 100.0 : 50.0;
-            double total = subtotal + shippingFee;
+            logger.debug("Razorpay order amount: {} INR = subtotal: {}, shipping: {}", total, subtotal, shippingFee);
 
             long amountPaise = Math.round(total * 100);
-            logger.debug("Razorpay order amount: {} INR = {} paise", total, amountPaise);
 
             String receipt = "receipt_" + System.currentTimeMillis() + "_" + user.getId();
 
@@ -127,15 +134,24 @@ public class PaymentController {
             String rzpSignature = body.get("razorpay_signature");
 
             if (email == null || rzpPaymentId == null || rzpOrderId == null || rzpSignature == null) {
-                return ResponseEntity.badRequest().body("Missing required fields");
+                logger.warn("Payment verification: Missing required fields for email: {}", email);
+                return ResponseEntity.badRequest().body(Map.of("error", "Missing required fields"));
             }
 
-            // Verify signature
-            razorpayService.verifySignature(rzpPaymentId, rzpOrderId, rzpSignature);
+            logger.info("Verifying payment for email: {}, orderId: {}", email, rzpOrderId);
 
-            // Place the application order (this will clear cart and decrement stock)
+            try {
+                // Verify signature
+                razorpayService.verifySignature(rzpPaymentId, rzpOrderId, rzpSignature);
+                logger.info("Signature verified successfully for payment: {}", rzpPaymentId);
+            } catch (Exception e) {
+                logger.error("Payment signature verification failed for email: {}", email, e);
+                return ResponseEntity.status(400).body(Map.of("error", "Payment verification failed: " + e.getMessage()));
+            }
+
+            // Place the application order using online payment method (doesn't require cart)
             User user = userService.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-            Order placed = orderService.placeOrder(user);
+            Order placed = orderService.placeOrderForOnlinePayment(user);
 
             // Update order with payment data
             placed.setRazorpayOrderId(rzpOrderId);
@@ -143,14 +159,17 @@ public class PaymentController {
             placed.setPaymentStatus("paid");
             placed.setStatus("paid");
             Order updated = orderRepo.save(placed);
+            
+            logger.info("Order placed successfully for user: {}, orderId: {}", email, updated.getId());
 
             Map<String, Object> resp = new HashMap<>();
             resp.put("order", updated);
+            resp.put("success", true);
             return ResponseEntity.ok(resp);
 
         } catch (Exception e) {
             logger.error("Payment verification failed", e);
-            return ResponseEntity.status(400).body("Payment verification failed: " + e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("error", "Payment verification failed: " + e.getMessage()));
         }
     }
 }
