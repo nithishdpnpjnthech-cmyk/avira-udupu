@@ -31,7 +31,7 @@ const OrderSummary = ({
     }
   };
 
-  const freeShippingThreshold = shippingLocation === 'bengaluru' ? 499 : 999;
+  const freeShippingThreshold = shippingLocation === 'bengaluru' ? 500 : 1000;
   const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
 
   return (

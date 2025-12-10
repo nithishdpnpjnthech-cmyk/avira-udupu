@@ -50,7 +50,7 @@ const OrderSummary = ({
 
   const items = cartItems?.length > 0 ? cartItems : mockCartItems;
   const calculatedSubtotal = subtotal || items?.reduce((sum, item) => sum + (item?.price * item?.quantity), 0);
-  const calculatedShipping = shipping || (calculatedSubtotal >= 499 ? 0 : 49);
+  const calculatedShipping = shipping || (calculatedSubtotal >= 500 ? 0 : 49);
   const calculatedDiscount = discount || (appliedCoupon === 'FLAT10' && calculatedSubtotal >= 1499 ? calculatedSubtotal * 0.1 : 0);
   const calculatedTotal = total || (calculatedSubtotal + calculatedShipping - calculatedDiscount);
 

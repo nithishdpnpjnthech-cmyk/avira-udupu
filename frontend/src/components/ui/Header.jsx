@@ -26,7 +26,7 @@ const Header = ({ onSearch = () => {} }) => {
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   
   const announcementMessages = [
-    "🚚 Free Shipping on Orders Above ₹3000",
+    "🚚 Free Shipping on Orders Above ₹500",
     "🎉 Enjoy 10% off on every purchase"
   ];
 

@@ -39,9 +39,9 @@ const ShoppingCart = () => {
   // Shipping calculation based on location
   const getShippingCost = () => {
     if (shippingLocation === 'bengaluru') {
-      return discountedSubtotal >= 499 ? 0 : 49;
+      return discountedSubtotal >= 500 ? 0 : 49;
     } else if (shippingLocation === 'other') {
-      return discountedSubtotal >= 999 ? 0 : 99;
+      return discountedSubtotal >= 1000 ? 0 : 99;
     }
     return 0;
   };
@@ -86,7 +86,7 @@ const ShoppingCart = () => {
       'FREE50': {
         code: 'FREE50',
         discount: 0,
-        minOrder: shippingLocation === 'bengaluru' ? 499 : 999,
+        minOrder: shippingLocation === 'bengaluru' ? 500 : 1000,
         description: 'Free shipping'
       }
     };
@@ -123,7 +123,7 @@ const ShoppingCart = () => {
     <>
       <Helmet>
         <title>Shopping Cart - Roots Traditional | Review Your Natural Products</title>
-        <meta name="description" content="Review and modify your cart items. Secure checkout with natural and organic food products. Free shipping available on orders above ₹499 in Bengaluru." />
+        <meta name="description" content="Review and modify your cart items. Secure checkout with natural and organic food products. Free shipping available on orders above ₹500 in Bengaluru." />
         <meta name="keywords" content="shopping cart, natural products, organic food, checkout, free shipping, Roots Traditional" />
       </Helmet>
       <div className="min-h-screen bg-background">

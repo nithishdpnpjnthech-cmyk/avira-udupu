@@ -126,7 +126,7 @@ const ProductDetails = ({ product }) => {
                   </span>
                 </div>
                 <p className="font-caption text-sm text-muted-foreground">
-                  Free shipping on orders above ₹499
+                  Free shipping on orders above ₹500
                 </p>
                 <p className="font-caption text-sm text-muted-foreground">
                   Delivery in 1-2 business days
@@ -141,7 +141,7 @@ const ProductDetails = ({ product }) => {
                   </span>
                 </div>
                 <p className="font-caption text-sm text-muted-foreground">
-                  Free shipping on orders above ₹999
+                  Free shipping on orders above ₹1000
                 </p>
                 <p className="font-caption text-sm text-muted-foreground">
                   Delivery in 3-5 business days

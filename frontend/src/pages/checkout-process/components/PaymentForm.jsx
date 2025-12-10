@@ -6,6 +6,7 @@ import { Checkbox } from '../../../components/ui/Checkbox';
 import Icon from '../../../components/AppIcon';
 import { useAuth } from '../../../contexts/AuthContext';
 import checkoutApi from '../../../services/checkoutApi';
+import paymentApi from '../../../services/paymentApi';
 
 /**
  * PaymentForm Component - Step 3 of Checkout Process
@@ -39,6 +40,7 @@ const PaymentForm = ({ onNext, onBack, orderTotal, paymentMethod: initialPayment
   const [upiId, setUpiId] = useState('');
   const [savePaymentMethod, setSavePaymentMethod] = useState(false);
   const [errors, setErrors] = useState({});
+  const [isInitiatingPayment, setIsInitiatingPayment] = useState(false);
 
   const paymentMethods = [
     {
@@ -46,6 +48,14 @@ const PaymentForm = ({ onNext, onBack, orderTotal, paymentMethod: initialPayment
       name: 'Cash on Delivery',
       description: 'Pay when your order is delivered',
       icon: 'Banknote',
+      fee: 0,
+      available: true
+    },
+    {
+      id: 'online',
+      name: 'Online Payment',
+      description: 'Pay securely using Credit/Debit Card, UPI, Net Banking, Wallets etc.',
+      icon: 'CreditCard',
       fee: 0,
       available: true
     },
@@ -132,6 +142,7 @@ const PaymentForm = ({ onNext, onBack, orderTotal, paymentMethod: initialPayment
   /**
    * Handle form submission
    * Validates payment data and saves selection to backend
+   * For online payment, initiates Razorpay payment gateway
    */
   const handleSubmit = async (e) => {
     e?.preventDefault();
@@ -146,13 +157,6 @@ const PaymentForm = ({ onNext, onBack, orderTotal, paymentMethod: initialPayment
     }
 
     try {
-      const paymentData = {
-        method: paymentMethod,
-        ...(paymentMethod === 'card' && { cardData }),
-        ...(paymentMethod === 'upi' && { upiId }),
-        savePaymentMethod
-      };
-
       // Save payment method to backend
       if (user?.email) {
         await checkoutApi.saveSelection(user.email, {
@@ -160,6 +164,20 @@ const PaymentForm = ({ onNext, onBack, orderTotal, paymentMethod: initialPayment
         });
         console.log('Payment method saved:', paymentMethod);
       }
+
+      // Handle online payment (Razorpay)
+      if (paymentMethod === 'online') {
+        await initiateOnlinePayment();
+        return;
+      }
+
+      // For COD and other methods, proceed normally
+      const paymentData = {
+        method: paymentMethod,
+        ...(paymentMethod === 'card' && { cardData }),
+        ...(paymentMethod === 'upi' && { upiId }),
+        savePaymentMethod
+      };
 
       // Update parent component's payment method state
       if (setParentPaymentMethod) {
@@ -170,6 +188,109 @@ const PaymentForm = ({ onNext, onBack, orderTotal, paymentMethod: initialPayment
     } catch (error) {
       console.error('Error saving payment method:', error);
       setErrors({ submit: 'Failed to save payment method. Please try again.' });
+    }
+  };
+
+  /**
+   * Initiate online payment through Razorpay
+   */
+  const initiateOnlinePayment = async () => {
+    setIsInitiatingPayment(true);
+    try {
+      if (!user?.email) {
+        throw new Error('User not authenticated');
+      }
+
+      console.log('Initiating Razorpay payment for:', user.email);
+
+      // Create Razorpay order using payment API
+      const orderData = await paymentApi.createOrder(user.email);
+      console.log('Razorpay order created:', orderData);
+
+      // Load Razorpay script
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => {
+        openRazorpayModal(orderData);
+      };
+      script.onerror = () => {
+        setErrors({ submit: 'Failed to load payment gateway. Please try again.' });
+        setIsInitiatingPayment(false);
+      };
+      document.body.appendChild(script);
+    } catch (error) {
+      console.error('Error initiating payment:', error);
+      setErrors({ submit: error.message || 'Failed to initiate payment. Please try again.' });
+      setIsInitiatingPayment(false);
+    }
+  };
+
+  /**
+   * Open Razorpay payment modal
+   */
+  const openRazorpayModal = (orderData) => {
+    const options = {
+      key: orderData.key,
+      amount: orderData.amount,
+      currency: 'INR',
+      name: 'Avira Udupu',
+      description: 'Order Payment',
+      order_id: orderData.razorpay_order_id,
+      handler: async (response) => {
+        try {
+          // Verify payment on backend using payment API
+          console.log('Payment successful, verifying...');
+          
+          await paymentApi.verifyPayment({
+            email: user.email,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature
+          });
+
+          console.log('Payment verified successfully');
+
+          // Proceed to order review
+          const paymentData = {
+            method: 'online',
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            savePaymentMethod
+          };
+
+          if (setParentPaymentMethod) {
+            setParentPaymentMethod(paymentData);
+          }
+
+          onNext(paymentData);
+        } catch (error) {
+          console.error('Payment verification error:', error);
+          setErrors({ submit: error.message || 'Payment verification failed. Please contact support.' });
+          setIsInitiatingPayment(false);
+        }
+      },
+      prefill: {
+        email: user?.email || '',
+        contact: user?.phone || ''
+      },
+      theme: {
+        color: '#C9A961'
+      },
+      modal: {
+        ondismiss: () => {
+          console.log('Payment modal closed by user');
+          setIsInitiatingPayment(false);
+        }
+      }
+    };
+
+    if (window.Razorpay) {
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } else {
+      setErrors({ submit: 'Payment gateway not available. Please try again.' });
+      setIsInitiatingPayment(false);
     }
   };
 
@@ -393,10 +514,10 @@ const PaymentForm = ({ onNext, onBack, orderTotal, paymentMethod: initialPayment
             variant="default"
             iconName="ArrowRight"
             iconPosition="right"
-            disabled={!paymentMethod || isLoading}
-            loading={isLoading}
+            disabled={!paymentMethod || isLoading || isInitiatingPayment}
+            loading={isLoading || isInitiatingPayment}
           >
-            {isLoading ? 'Processing...' : 'Review Order'}
+            {isInitiatingPayment ? 'Initiating Payment...' : (isLoading ? 'Processing...' : paymentMethod === 'online' ? 'Proceed to Payment' : 'Review Order')}
           </Button>
         </div>
       </form>

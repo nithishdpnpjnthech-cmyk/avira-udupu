@@ -8,7 +8,7 @@ import Button from './Button';
 const CartDrawer = ({ isOpen, onClose, cartItems = [], onUpdateQuantity, onRemoveItem }) => {
   const navigate = useNavigate();
   const subtotal = cartItems?.reduce((sum, item) => sum + (item?.price * item?.quantity), 0);
-  const shipping = subtotal >= 499 ? 0 : 49;
+  const shipping = subtotal >= 500 ? 0 : 49;
   const total = subtotal + shipping;
 
   const handleQuantityChange = (itemId, newQuantity) => {

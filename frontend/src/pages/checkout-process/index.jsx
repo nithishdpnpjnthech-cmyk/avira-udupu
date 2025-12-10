@@ -156,7 +156,7 @@ const CheckoutProcess = () => {
     const itemQuantity = parseInt(item?.quantity) || 0;
     return sum + (itemPrice * itemQuantity);
   }, 0);
-  const shippingCost = deliveryData?.price || (subtotal >= 499 ? 0 : 49);
+  const shippingCost = deliveryData?.price || (subtotal >= 500 ? 0 : 49);
   const discountAmount = appliedCoupon === 'FLAT10' && subtotal >= 1499 ? subtotal * 0.1 : 0;
   const total = subtotal + shippingCost - discountAmount;
 
