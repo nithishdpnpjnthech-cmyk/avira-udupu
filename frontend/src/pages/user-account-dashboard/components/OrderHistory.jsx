@@ -351,6 +351,7 @@ const OrderHistory = () => {
                               {item?.productName || 'Product'}
                             </h5>
                             <p className="font-caption text-sm text-muted-foreground">
+                              {item?.variantName && <span>Variant: {item.variantName} • </span>}
                               Qty: {item?.quantity} • ₹{item?.price?.toFixed(2)} each
                             </p>
                           </div>

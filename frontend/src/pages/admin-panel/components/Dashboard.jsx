@@ -63,7 +63,8 @@ const Dashboard = () => {
       
       // Get all data from backend APIs
       const [productsResponse, usersResponse, ordersResponse, orderStats] = await Promise.all([
-        dataService.getProducts(),
+        // Force bypass cache so stock numbers reflect latest writes
+        dataService.getProducts({ forceRefresh: true }),
         // Users endpoint returns non-admin users from backend
         userApi.getAll().catch(() => []),
         // Orders endpoint returns list of orders (DTOs)
@@ -121,8 +122,39 @@ const Dashboard = () => {
         return st === 'delivered' || st === 'completed';
       }).length);
       
-      // Product analytics
-      const lowStockProducts = products.filter(p => (p.stockQuantity || 0) < 10);
+      // Product analytics - include all variants with low stock
+      const lowStockProducts = [];
+      products.forEach(p => {
+        if (p.variants && Array.isArray(p.variants)) {
+          // Add each variant with low stock as a separate alert
+          p.variants.forEach(variant => {
+            if ((variant.stockQuantity || 0) < 10) {
+              lowStockProducts.push({
+                id: p.id,
+                productId: p.id,
+                name: p.name,
+                variantId: variant.id,
+                color: variant.color,
+                weight: variant.weight,
+                stockQuantity: variant.stockQuantity,
+                images: p.images,
+                price: variant.price || p.price
+              });
+            }
+          });
+        } else if ((p.stockQuantity || 0) < 10) {
+          // Fallback for products without variants
+          lowStockProducts.push({
+            id: p.id,
+            productId: p.id,
+            name: p.name,
+            weight: p.weight,
+            stockQuantity: p.stockQuantity,
+            images: p.images,
+            price: p.price
+          });
+        }
+      });
       const recentOrders = [...orders]
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         .slice(0, 5);
@@ -186,26 +218,67 @@ const Dashboard = () => {
     await loadDashboardData();
   };
 
-  const handleQuickRestockProduct = async (productId) => {
+  const handleQuickRestockProduct = async (productId, variantId) => {
     const restockAmount = prompt('Enter quantity to add to stock:');
     if (restockAmount && !isNaN(restockAmount) && parseInt(restockAmount) > 0) {
       try {
         // Load current product details from backend
-        const productsRes = await dataService.getProducts();
+        // Force fresh fetch to avoid stale cache after a write
+        const productsRes = await dataService.getProducts({ forceRefresh: true });
         const product = (productsRes?.data || []).find(p => p.id === productId);
         if (!product) {
           alert('Product not found. Please refresh and try again.');
           return;
         }
 
-        const newStock = (product.stockQuantity || 0) + parseInt(restockAmount, 10);
-        const payload = { ...product, stockQuantity: newStock, inStock: newStock > 0 };
+        let payload = { ...product };
+        let updatedItemName = product.name;
+        let newStock = 0;
 
+        console.log('=== Stock Update Debug ===');
+        console.log('Product ID:', productId);
+        console.log('Variant ID:', variantId);
+        console.log('Product variants:', product.variants);
+
+        // If this product has variants, update the specific variant
+        if (variantId && product.variants && Array.isArray(product.variants)) {
+          const variantIndex = product.variants.findIndex(v => v.id === variantId);
+          console.log('Variant Index:', variantIndex);
+          
+          if (variantIndex !== -1) {
+            const variant = product.variants[variantIndex];
+            newStock = (variant.stockQuantity || 0) + parseInt(restockAmount, 10);
+            
+            console.log('Found variant:', variant);
+            console.log('New stock for variant:', newStock);
+            
+            // Create a new variants array with the updated variant
+            const updatedVariants = [...product.variants];
+            updatedVariants[variantIndex] = {
+              ...variant,
+              stockQuantity: newStock,
+              inStock: newStock > 0
+            };
+            
+            payload.variants = updatedVariants;
+            updatedItemName = `${product.name} (${variant.color})`;
+            
+            console.log('Updated variants array:', updatedVariants);
+          }
+        } else {
+          // Fallback for products without variants
+          newStock = (product.stockQuantity || 0) + parseInt(restockAmount, 10);
+          payload.stockQuantity = newStock;
+          payload.inStock = newStock > 0;
+        }
+
+        console.log('Final payload:', payload);
+        
         // Persist to backend
         await productApi.update(productId, payload);
 
         await loadDashboardData(); // Refresh data from backend
-        alert(`Stock updated! ${product.name} now has ${newStock} items in stock.`);
+        alert(`Stock updated! ${updatedItemName} now has ${newStock} items in stock.`);
       } catch (error) {
         console.error('Error updating stock:', error);
         alert('Failed to update stock. Please try again.');
@@ -563,10 +636,17 @@ const Dashboard = () => {
           <div className="space-y-3">
             {stats.lowStockProducts.length > 0 ? (
               stats.lowStockProducts.slice(0, 5).map((product) => (
-                <div key={product.id} className="flex items-center justify-between p-3 bg-warning/10 rounded-lg">
+                <div key={`${product.productId}-${product.variantId || 'no-variant'}`} className="flex items-center justify-between p-3 bg-warning/10 rounded-lg">
                   <div className="flex-1">
                     <p className="font-body font-medium text-foreground">{product.name}</p>
-                    <p className="text-sm text-muted-foreground">{product.weight || 'N/A'}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      {product.color && (
+                        <span className="text-xs font-semibold text-muted-foreground bg-muted px-2 py-1 rounded">
+                          {product.color}
+                        </span>
+                      )}
+                      <p className="text-sm text-muted-foreground">{product.weight || 'N/A'}</p>
+                    </div>
                   </div>
                   <div className="flex items-center space-x-3">
                     <div className="text-right">
@@ -577,7 +657,7 @@ const Dashboard = () => {
                       </p>
                     </div>
                     <button
-                      onClick={() => handleQuickRestockProduct(product.id)}
+                      onClick={() => handleQuickRestockProduct(product.productId, product.variantId)}
                       className="px-3 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors text-sm"
                     >
                       + Add

@@ -2,6 +2,7 @@ package com.eduprajna.dto;
 
 import com.eduprajna.entity.OrderItem;
 import com.eduprajna.entity.Product;
+import com.eduprajna.entity.ProductVariant;
 
 /**
  * Data Transfer Object for OrderItem entity
@@ -15,6 +16,8 @@ public class OrderItemDTO {
     private Double productPrice;
     private Integer quantity;
     private Double price; // Price at time of order
+    private Long variantId; // ID of the selected variant
+    private String variantName; // Name of the selected variant
 
     // Default constructor
     public OrderItemDTO() {}
@@ -24,15 +27,48 @@ public class OrderItemDTO {
         this.id = orderItem.getId();
         this.quantity = orderItem.getQuantity();
         this.price = orderItem.getPrice();
+        this.variantId = orderItem.getVariantId();
+        this.variantName = orderItem.getVariantName();
         
         // Handle product information safely
         if (orderItem.getProduct() != null) {
             Product product = orderItem.getProduct();
             this.productId = product.getId();
             this.productName = product.getName();
-            this.productImage = product.getImageUrl();
+
+            // Prefer the selected variant's image; fall back to product image
+            String imageUrl = product.getImageUrl();
+            if (orderItem.getVariantId() != null && product.getVariants() != null) {
+                ProductVariant variant = product.getVariants().stream()
+                    .filter(v -> v.getId() != null && v.getId().equals(orderItem.getVariantId()))
+                    .findFirst()
+                    .orElse(null);
+                if (variant != null) {
+                    String variantImage = firstNonEmpty(
+                        variant.getMainImage(),
+                        variant.getSubImage1(),
+                        variant.getSubImage2(),
+                        variant.getSubImage3()
+                    );
+                    if (variantImage != null && !variantImage.isBlank()) {
+                        imageUrl = variantImage;
+                    }
+                }
+            }
+            this.productImage = imageUrl;
+
             this.productPrice = product.getPrice() != null ? product.getPrice().doubleValue() : 0.0;
         }
+    }
+
+    private String firstNonEmpty(String... candidates) {
+        if (candidates == null) return null;
+        for (String candidate : candidates) {
+            if (candidate != null && !candidate.isBlank()) {
+                return candidate;
+            }
+        }
+        return null;
     }
 
     // Getters and Setters
@@ -56,4 +92,10 @@ public class OrderItemDTO {
     
     public Double getPrice() { return price; }
     public void setPrice(Double price) { this.price = price; }
+    
+    public Long getVariantId() { return variantId; }
+    public void setVariantId(Long variantId) { this.variantId = variantId; }
+    
+    public String getVariantName() { return variantName; }
+    public void setVariantName(String variantName) { this.variantName = variantName; }
 }

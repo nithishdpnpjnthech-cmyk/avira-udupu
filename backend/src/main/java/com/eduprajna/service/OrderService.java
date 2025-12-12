@@ -54,13 +54,30 @@ public class OrderService {
         // 1b. Validate stock availability for all items before proceeding
         for (CartItem ci : cart) {
             Product product = ci.getProduct();
-            int available = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
             int qty = ci.getQuantity() != null ? ci.getQuantity() : 0;
             if (qty <= 0) {
                 throw new IllegalStateException("Invalid quantity for product: " + product.getName());
             }
-            if (available < qty) {
-                throw new IllegalStateException("Insufficient stock for product: " + product.getName());
+            
+            // Check variant-specific stock if variant selected
+            if (ci.getVariantId() != null && ci.getVariantId() > 0) {
+                ProductVariant variant = product.getVariants().stream()
+                    .filter(v -> v.getId().equals(ci.getVariantId()))
+                    .findFirst()
+                    .orElse(null);
+                if (variant == null) {
+                    throw new IllegalStateException("Variant not found for product: " + product.getName());
+                }
+                int available = variant.getStockQuantity() != null ? variant.getStockQuantity() : 0;
+                if (available < qty) {
+                    throw new IllegalStateException("Insufficient stock for variant: " + variant.getColor() + " of " + product.getName());
+                }
+            } else {
+                // Fall back to product-level stock if no variant
+                int available = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
+                if (available < qty) {
+                    throw new IllegalStateException("Insufficient stock for product: " + product.getName());
+                }
             }
         }
         
@@ -108,15 +125,36 @@ public class OrderService {
             orderItem.setProduct(cartItem.getProduct());
             orderItem.setQuantity(cartItem.getQuantity());
             orderItem.setPrice(cartItem.getPriceAtAdd());
+            orderItem.setVariantId(cartItem.getVariantId());
+            orderItem.setVariantName(cartItem.getVariantName());
             
-            // Decrement stock for the purchased product
+            // Decrement stock for the purchased product/variant
             Product product = cartItem.getProduct();
-            int available = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
             int qty = cartItem.getQuantity() != null ? cartItem.getQuantity() : 0;
-            int newQty = Math.max(available - qty, 0);
-            product.setStockQuantity(newQty);
-            product.setInStock(newQty > 0);
-            productRepo.save(product);
+            
+            if (cartItem.getVariantId() != null && cartItem.getVariantId() > 0) {
+                // Decrement variant-specific stock
+                ProductVariant variant = product.getVariants().stream()
+                    .filter(v -> v.getId().equals(cartItem.getVariantId()))
+                    .findFirst()
+                    .orElse(null);
+                if (variant != null) {
+                    int available = variant.getStockQuantity() != null ? variant.getStockQuantity() : 0;
+                    int newQty = Math.max(available - qty, 0);
+                    variant.setStockQuantity(newQty);
+                    variant.setInStock(newQty > 0);
+                    productRepo.save(product);
+                    logger.debug("Decremented variant stock: {} -> {}", variant.getId(), newQty);
+                }
+            } else {
+                // Decrement product-level stock
+                int available = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
+                int newQty = Math.max(available - qty, 0);
+                product.setStockQuantity(newQty);
+                product.setInStock(newQty > 0);
+                productRepo.save(product);
+                logger.debug("Decremented product stock: {} -> {}", product.getId(), newQty);
+            }
             return orderItem;
         }).collect(Collectors.toList());
         order.setItems(orderItems);
@@ -195,15 +233,36 @@ public class OrderService {
                 orderItem.setProduct(cartItem.getProduct());
                 orderItem.setQuantity(cartItem.getQuantity());
                 orderItem.setPrice(cartItem.getPriceAtAdd());
+                orderItem.setVariantId(cartItem.getVariantId());
+                orderItem.setVariantName(cartItem.getVariantName());
                 
-                // Decrement stock
+                // Decrement stock for the purchased product/variant
                 Product product = cartItem.getProduct();
-                int available = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
                 int qty = cartItem.getQuantity() != null ? cartItem.getQuantity() : 0;
-                int newQty = Math.max(available - qty, 0);
-                product.setStockQuantity(newQty);
-                product.setInStock(newQty > 0);
-                productRepo.save(product);
+                
+                if (cartItem.getVariantId() != null && cartItem.getVariantId() > 0) {
+                    // Decrement variant-specific stock
+                    ProductVariant variant = product.getVariants().stream()
+                        .filter(v -> v.getId().equals(cartItem.getVariantId()))
+                        .findFirst()
+                        .orElse(null);
+                    if (variant != null) {
+                        int available = variant.getStockQuantity() != null ? variant.getStockQuantity() : 0;
+                        int newQty = Math.max(available - qty, 0);
+                        variant.setStockQuantity(newQty);
+                        variant.setInStock(newQty > 0);
+                        productRepo.save(product);
+                        logger.debug("Decremented variant stock (online): {} -> {}", variant.getId(), newQty);
+                    }
+                } else {
+                    // Decrement product-level stock
+                    int available = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
+                    int newQty = Math.max(available - qty, 0);
+                    product.setStockQuantity(newQty);
+                    product.setInStock(newQty > 0);
+                    productRepo.save(product);
+                    logger.debug("Decremented product stock (online): {} -> {}", product.getId(), newQty);
+                }
                 return orderItem;
             }).collect(Collectors.toList());
             order.setItems(orderItems);

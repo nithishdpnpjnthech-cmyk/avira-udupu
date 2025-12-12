@@ -3,6 +3,8 @@ package com.eduprajna.Controller;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,6 +101,99 @@ public class ProductController {
             @RequestBody Product p
     ) {
         p.setId(id);
+        
+        System.out.println("=== JSON Update for Product ID: " + id + " ===");
+        System.out.println("Incoming variants count: " + (p.getVariants() != null ? p.getVariants().size() : 0));
+        if (p.getVariants() != null) {
+            for (int i = 0; i < p.getVariants().size(); i++) {
+                com.eduprajna.entity.ProductVariant v = p.getVariants().get(i);
+                System.out.println("Incoming Variant " + i + ": ID=" + v.getId() + ", Color=" + v.getColor() + ", Stock=" + v.getStockQuantity());
+            }
+        }
+        
+        // Fetch existing product to merge variants properly
+        Product existing = productService.getById(id);
+        if (existing != null && existing.getVariants() != null && !existing.getVariants().isEmpty()) {
+            System.out.println("Existing variants count: " + existing.getVariants().size());
+            for (int i = 0; i < existing.getVariants().size(); i++) {
+                com.eduprajna.entity.ProductVariant v = existing.getVariants().get(i);
+                System.out.println("Existing Variant " + i + ": ID=" + v.getId() + ", Color=" + v.getColor() + ", Stock=" + v.getStockQuantity());
+            }
+            
+            // If incoming product has variants, update them by ID or replace
+            if (p.getVariants() != null && !p.getVariants().isEmpty()) {
+                // Create a map of existing variants by ID for quick lookup
+                java.util.Map<Long, com.eduprajna.entity.ProductVariant> existingVariantsMap = 
+                    new java.util.HashMap<>();
+                for (com.eduprajna.entity.ProductVariant v : existing.getVariants()) {
+                    if (v.getId() != null) {
+                        existingVariantsMap.put(v.getId(), v);
+                    }
+                }
+                
+                System.out.println("Existing variants map size: " + existingVariantsMap.size());
+                
+                // Create a map of incoming variants by ID
+                java.util.Map<Long, com.eduprajna.entity.ProductVariant> incomingVariantsMap = 
+                    new java.util.HashMap<>();
+                java.util.List<com.eduprajna.entity.ProductVariant> newVariants = 
+                    new java.util.ArrayList<>();
+                
+                for (com.eduprajna.entity.ProductVariant incomingVariant : p.getVariants()) {
+                    if (incomingVariant.getId() != null) {
+                        incomingVariantsMap.put(incomingVariant.getId(), incomingVariant);
+                    } else {
+                        newVariants.add(incomingVariant);
+                    }
+                }
+                
+                System.out.println("Incoming variants map size: " + incomingVariantsMap.size());
+                System.out.println("New variants: " + newVariants.size());
+                
+                // Preserve all existing variants and update only those present in incoming
+                java.util.List<com.eduprajna.entity.ProductVariant> finalVariants = 
+                    new java.util.ArrayList<>();
+                
+                for (com.eduprajna.entity.ProductVariant existingVariant : existing.getVariants()) {
+                    if (incomingVariantsMap.containsKey(existingVariant.getId())) {
+                        System.out.println("Updating variant ID: " + existingVariant.getId());
+                        // Update this variant with incoming data
+                        com.eduprajna.entity.ProductVariant incomingVariant = incomingVariantsMap.get(existingVariant.getId());
+                        
+                        if (incomingVariant.getPrice() != null) {
+                            existingVariant.setPrice(incomingVariant.getPrice());
+                        }
+                        if (incomingVariant.getOriginalPrice() != null) {
+                            existingVariant.setOriginalPrice(incomingVariant.getOriginalPrice());
+                        }
+                        if (incomingVariant.getStockQuantity() != null) {
+                            existingVariant.setStockQuantity(incomingVariant.getStockQuantity());
+                            System.out.println("Updated stock for variant ID " + existingVariant.getId() + " to " + existingVariant.getStockQuantity());
+                        }
+                        if (incomingVariant.getInStock() != null) {
+                            existingVariant.setInStock(incomingVariant.getInStock());
+                        }
+                        if (incomingVariant.getColor() != null) {
+                            existingVariant.setColor(incomingVariant.getColor());
+                        }
+                    } else {
+                        System.out.println("Keeping variant ID: " + existingVariant.getId() + " unchanged");
+                    }
+                    finalVariants.add(existingVariant);
+                }
+                
+                // Add any new variants
+                finalVariants.addAll(newVariants);
+                
+                System.out.println("Final variants count: " + finalVariants.size());
+                
+                p.setVariants(finalVariants);
+            } else {
+                // No variants in incoming, keep existing
+                p.setVariants(existing.getVariants());
+            }
+        }
+        
         return ResponseEntity.ok(productService.save(p));
     }
 

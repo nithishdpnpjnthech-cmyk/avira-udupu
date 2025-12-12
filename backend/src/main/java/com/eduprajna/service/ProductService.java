@@ -33,11 +33,15 @@ public class ProductService {
             for (com.eduprajna.entity.ProductVariant v : p.getVariants()) {
                 v.setProduct(p);
             }
-            if (!p.getVariants().isEmpty()) {
+            // Only set product-level fields from first variant if this is a NEW product with single variant
+            // Don't do this for existing products with multiple variants
+            if (!p.getVariants().isEmpty() && (p.getId() == null || p.getVariants().size() == 1)) {
                 com.eduprajna.entity.ProductVariant first = p.getVariants().get(0);
-                p.setPrice(first.getPrice());
-                p.setOriginalPrice(first.getOriginalPrice());
-                p.setStockQuantity(first.getStockQuantity());
+                if (p.getId() == null) { // Only set on new products
+                    p.setPrice(first.getPrice());
+                    p.setOriginalPrice(first.getOriginalPrice());
+                    p.setStockQuantity(first.getStockQuantity());
+                }
             }
         }
         return productRepository.save(p);

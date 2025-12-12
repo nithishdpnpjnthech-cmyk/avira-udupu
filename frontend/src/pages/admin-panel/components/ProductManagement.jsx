@@ -141,9 +141,20 @@ const ProductManagement = () => {
     setShowProductForm(true);
   };
 
-  const handleEditProduct = (product) => {
-    setEditingProduct(product);
-    setShowProductForm(true);
+  const handleEditProduct = async (product) => {
+    try {
+      // Fetch the full product details including all variants
+      const fullProduct = await productApi.getById(product.id, { forceRefresh: true });
+      console.log('Fetched full product for edit:', fullProduct);
+      setEditingProduct(fullProduct);
+      setShowProductForm(true);
+    } catch (error) {
+      console.error('Error fetching product for edit:', error);
+      // Fallback to the product passed if API fails
+      setEditingProduct(product);
+      setShowProductForm(true);
+      alert('Warning: Could not load full product details. Some fields may be missing.');
+    }
   };
 
   const handleDeleteProduct = async (productId) => {

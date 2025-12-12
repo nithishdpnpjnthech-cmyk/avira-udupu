@@ -159,7 +159,7 @@ const ShoppingCart = () => {
                   <div className="space-y-4">
                     {cartItems?.map((item) => (
                       <CartItem
-                        key={item?.id}
+                        key={item?.cartItemId || item?.id}
                         item={item}
                         onUpdateQuantity={handleUpdateQuantity}
                         onRemoveItem={handleRemoveItem}

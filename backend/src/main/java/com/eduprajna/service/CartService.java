@@ -20,11 +20,24 @@ public class CartService {
         this.productRepo = productRepo;
     }
 
+    private Optional<CartItem> findExistingItem(User user, Product product, Long variantId, String variantName, String variantColor) {
+        if (variantId != null) {
+            return cartRepo.findByUserAndProductAndVariantId(user, product, variantId);
+        }
+        if (variantName != null && !variantName.isBlank()) {
+            return cartRepo.findByUserAndProductAndVariantName(user, product, variantName);
+        }
+        if (variantColor != null && !variantColor.isBlank()) {
+            return cartRepo.findByUserAndProductAndVariantColor(user, product, variantColor);
+        }
+        return cartRepo.findByUserAndProductAndVariantIdIsNull(user, product);
+    }
+
     public List<CartItem> getCart(User user) {
         return cartRepo.findByUser(user);
     }
 
-    public CartItem addToCart(User user, Long productId, int quantity, Long variantId, String variantName, Double weightValue, String weightUnit, Double price) {
+    public CartItem addToCart(User user, Long productId, int quantity, Long variantId, String variantName, String variantImage, String variantColor, Double weightValue, String weightUnit, Double price) {
         Product product = productRepo.findById(productId).orElseThrow();
         Integer stockQty = product.getStockQuantity();
         boolean explicitlyOutOfStock = product.getInStock() != null && !product.getInStock();
@@ -37,7 +50,7 @@ public class CartService {
         if (quantity <= 0) {
             throw new IllegalArgumentException("Quantity must be at least 1");
         }
-        Optional<CartItem> existing = cartRepo.findByUserAndProduct(user, product);
+        Optional<CartItem> existing = findExistingItem(user, product, variantId, variantName, variantColor);
         CartItem item = existing.orElseGet(() -> {
             CartItem ci = new CartItem();
             ci.setUser(user);
@@ -48,6 +61,8 @@ public class CartService {
             // Store variant information
             ci.setVariantId(variantId);
             ci.setVariantName(variantName);
+            ci.setVariantImage(variantImage);
+            ci.setVariantColor(variantColor);
             ci.setWeightValue(weightValue);
             ci.setWeightUnit(weightUnit);
             return ci;
@@ -68,6 +83,12 @@ public class CartService {
         if (variantId != null) {
             item.setVariantId(variantId);
         }
+        if (variantImage != null) {
+            item.setVariantImage(variantImage);
+        }
+        if (variantColor != null) {
+            item.setVariantColor(variantColor);
+        }
         if (weightValue != null) {
             item.setWeightValue(weightValue);
         }
@@ -79,21 +100,13 @@ public class CartService {
     
     // Keep the old signature for backward compatibility
     public CartItem addToCart(User user, Long productId, int quantity) {
-        return addToCart(user, productId, quantity, null, null, null, null, null);
-    }
-    
-    public void removeItemByProductId(User user, Long productId) {
-        List<CartItem> items = cartRepo.findByUser(user);
-        for (CartItem item : items) {
-            if (item.getProduct().getId().equals(productId)) {
-                cartRepo.delete(item);
-            }
-        }
+        return addToCart(user, productId, quantity, null, null, null, null, null, null, null);
     }
 
-    public CartItem updateQuantity(User user, Long productId, int quantity) {
+    public CartItem updateQuantity(User user, Long productId, int quantity, Long variantId, String variantName, String variantColor) {
         Product product = productRepo.findById(productId).orElseThrow();
-        CartItem item = cartRepo.findByUserAndProduct(user, product).orElseThrow();
+        CartItem item = findExistingItem(user, product, variantId, variantName, variantColor)
+            .orElseThrow();
         Integer stockQty = product.getStockQuantity();
         boolean explicitlyOutOfStock = product.getInStock() != null && !product.getInStock();
         if (explicitlyOutOfStock) {
@@ -112,9 +125,19 @@ public class CartService {
         return cartRepo.save(item);
     }
 
-    public void removeItem(User user, Long productId) {
+    // Backward-compatible signature without variant details
+    public CartItem updateQuantity(User user, Long productId, int quantity) {
+        return updateQuantity(user, productId, quantity, null, null, null);
+    }
+
+    public void removeItem(User user, Long productId, Long variantId, String variantName, String variantColor) {
         Product product = productRepo.findById(productId).orElseThrow();
-        cartRepo.findByUserAndProduct(user, product).ifPresent(ci -> cartRepo.deleteById(ci.getId()));
+        findExistingItem(user, product, variantId, variantName, variantColor)
+            .ifPresent(ci -> cartRepo.deleteById(ci.getId()));
+    }
+
+    public void removeItem(User user, Long productId) {
+        removeItem(user, productId, null, null, null);
     }
 
     public void clearCart(User user) {

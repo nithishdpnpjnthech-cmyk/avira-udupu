@@ -33,7 +33,7 @@ const cartApi = {
     }
   },
 
-  async add(email, { productId, quantity = 1 }) {
+  async add(email, { productId, quantity = 1, variantId, variant, variantImage, variantColor, weightValue, weightUnit, price }) {
     try {
       if (!email) {
         throw new Error('User email is required');
@@ -45,8 +45,18 @@ const cartApi = {
         throw new Error('Quantity must be at least 1');
       }
       
-      console.log('CartAPI: Adding product to cart:', { email, productId, quantity });
-      const res = await apiClient.post('/cart/add', { productId, quantity }, { params: { email } });
+      const payload = { productId, quantity };
+      // Include variant information if provided
+      if (variantId) payload.variantId = variantId;
+      if (variant) payload.variant = variant;
+      if (variantImage) payload.variantImage = variantImage;
+      if (variantColor) payload.variantColor = variantColor;
+      if (weightValue) payload.weightValue = weightValue;
+      if (weightUnit) payload.weightUnit = weightUnit;
+      if (price) payload.price = price;
+      
+      console.log('CartAPI: Adding product to cart:', { email, ...payload });
+      const res = await apiClient.post('/cart/add', payload, { params: { email } });
       console.log('CartAPI: Successfully added product to cart');
       return res.data;
     } catch (error) {
@@ -74,7 +84,7 @@ const cartApi = {
     }
   },
 
-  async update(email, { productId, quantity }) {
+  async update(email, { productId, quantity, variantId, variant, variantColor }) {
     try {
       if (!email) {
         throw new Error('User email is required');
@@ -86,8 +96,13 @@ const cartApi = {
         throw new Error('Quantity cannot be negative');
       }
       
-      console.log('CartAPI: Updating cart item:', { email, productId, quantity });
-      const res = await apiClient.post('/cart/update', { productId, quantity }, { params: { email } });
+      const payload = { productId, quantity };
+      if (variantId) payload.variantId = variantId;
+      if (variant) payload.variant = variant;
+      if (variantColor) payload.variantColor = variantColor;
+
+      console.log('CartAPI: Updating cart item:', { email, ...payload });
+      const res = await apiClient.post('/cart/update', payload, { params: { email } });
       console.log('CartAPI: Successfully updated cart item');
       return res.data;
     } catch (error) {
@@ -115,7 +130,7 @@ const cartApi = {
     }
   },
 
-  async remove(email, { productId }) {
+  async remove(email, { productId, variantId, variant, variantColor }) {
     try {
       if (!email) {
         throw new Error('User email is required');
@@ -124,8 +139,13 @@ const cartApi = {
         throw new Error('Product ID is required');
       }
       
-      console.log('CartAPI: Removing product from cart:', { email, productId });
-      const res = await apiClient.post('/cart/remove', { productId }, { params: { email } });
+      const payload = { productId };
+      if (variantId) payload.variantId = variantId;
+      if (variant) payload.variant = variant;
+      if (variantColor) payload.variantColor = variantColor;
+
+      console.log('CartAPI: Removing product from cart:', { email, ...payload });
+      const res = await apiClient.post('/cart/remove', payload, { params: { email } });
       console.log('CartAPI: Successfully removed product from cart');
       return res.status;
     } catch (error) {

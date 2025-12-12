@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { sendOrderDetailsToWhatsApp } from '../../utils/whatsapp';
 import dataService from '../../services/dataService';
 import checkoutApi from '../../services/checkoutApi';
+import apiClient from '../../services/api';
 import Header from '../../components/ui/Header';
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import CheckoutProgress from './components/CheckoutProgress';
@@ -42,11 +43,13 @@ const CheckoutProcess = () => {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [error, setError] = useState(null);
   const [orderReviewData, setOrderReviewData] = useState(null);
+  const [cartCleared, setCartCleared] = useState(false);
 
   // Form data states for each step
   const [shippingData, setShippingData] = useState(null);
   const [deliveryData, setDeliveryData] = useState(null);
   const [paymentData, setPaymentData] = useState(null);
+  const [autoRedirected, setAutoRedirected] = useState(false);
 
   // Cart validation - show message instead of redirecting for testing
   const [showEmptyCartMessage, setShowEmptyCartMessage] = useState(false);
@@ -233,6 +236,9 @@ const CheckoutProcess = () => {
           // Skip review step for online payments (order already created)
           if (stepData?.skipReview) {
             console.log('Skipping review for online payment, order already placed');
+            // Backend clears the cart during payment verification; clear client state too
+            clearCart();
+            setCartCleared(true);
             setCurrentStep(5); // Go to success/completion
             break;
           }
@@ -287,24 +293,38 @@ const CheckoutProcess = () => {
       const savedOrder = await checkoutApi.placeOrder(user.email);
       console.log('Order placed successfully:', savedOrder);
 
-      // Get order review data for WhatsApp message
+      // Get order review data
       let reviewData = orderReviewData;
       if (!reviewData) {
         try {
           reviewData = await checkoutApi.review(user.email);
         } catch (reviewError) {
-          console.warn('Could not fetch review data for WhatsApp:', reviewError);
+          console.warn('Could not fetch review data:', reviewError);
         }
       }
 
-      // Send WhatsApp notification
-      await sendOrderToWhatsApp(savedOrder, reviewData, user, currentLocation);
+      // Check payment method and send appropriate notification
+      const paymentMethod = paymentData?.method || 'cod';
+      
+      if (paymentMethod === 'cod') {
+        // For COD, send email notification
+        console.log('Sending email notification for COD order');
+        await sendOrderEmail(savedOrder, reviewData, user);
+      } else {
+        // For online payments, send WhatsApp notification
+        console.log('Sending WhatsApp notification for online payment order');
+        await sendOrderToWhatsApp(savedOrder, reviewData, user, currentLocation);
+      }
 
       // Clear cart after successful order
       clearCart();
 
-      // Show success message and redirect
-      alert(`Order placed successfully! Order ID: ${savedOrder.id}. Order details have been sent to WhatsApp.`);
+      // Show success message based on payment method
+      const message = paymentMethod === 'cod' 
+        ? `Order placed successfully! Order ID: ${savedOrder.id}. Confirmation email has been sent.`
+        : `Order placed successfully! Order ID: ${savedOrder.id}. Order details have been sent to WhatsApp.`;
+      
+      alert(message);
       navigate('/user-account-dashboard?section=orders');
 
     } catch (error) {
@@ -312,6 +332,30 @@ const CheckoutProcess = () => {
       setError(error.message || 'Failed to place order. Please try again.');
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  /**
+   * Send order confirmation email for COD orders
+   */
+  const sendOrderEmail = async (order, reviewData, user) => {
+    try {
+      const emailData = {
+        to: user?.email,
+        orderId: order?.id,
+        orderDetails: order,
+        reviewData: reviewData,
+        customerName: user?.name,
+        customerEmail: user?.email,
+        customerPhone: user?.phone
+      };
+
+      // Call backend email API endpoint
+      await apiClient.post('/email/send-order-confirmation', emailData);
+      console.log('Order confirmation email sent to:', user?.email);
+    } catch (error) {
+      console.error('Failed to send confirmation email:', error);
+      // Don't throw - just log the error to avoid blocking order success
     }
   };
 
@@ -399,13 +443,13 @@ const CheckoutProcess = () => {
                   <p className="text-lg text-gray-600 mb-2">Your order has been placed successfully.</p>
                   <p className="text-gray-500 mb-8">Payment ID: {paymentData?.razorpay_payment_id}</p>
                   <Button
-                    onClick={() => navigate('/user-account-dashboard')}
+                    onClick={() => navigate('/user-account-dashboard?section=orders')}
                     className="bg-primary text-white px-8 py-3 rounded-lg hover:bg-primary/90"
                   >
                     View My Orders
                   </Button>
                   <button
-                    onClick={() => navigate('/')}
+                    onClick={() => navigate('/user-account-dashboard?section=orders')}
                     className="ml-4 px-8 py-3 border border-primary text-primary rounded-lg hover:bg-primary/5"
                   >
                     Continue Shopping
@@ -419,6 +463,22 @@ const CheckoutProcess = () => {
         return null;
     }
   };
+
+  // Ensure cart is cleared when we reach the success step (covers both COD and online flows)
+  useEffect(() => {
+    if (currentStep === 5 && !cartCleared) {
+      clearCart();
+      setCartCleared(true);
+    }
+  }, [currentStep, cartCleared, clearCart]);
+
+  // Auto-redirect to orders page after successful online payment
+  useEffect(() => {
+    if (currentStep === 5 && paymentData?.razorpay_payment_id && !autoRedirected) {
+      setAutoRedirected(true);
+      navigate('/user-account-dashboard?section=orders');
+    }
+  }, [currentStep, paymentData, autoRedirected, navigate]);
 
   // Show loading state if user is not loaded yet
   if (loading) {
@@ -455,11 +515,11 @@ const CheckoutProcess = () => {
                 </Button>
                 <Button
                   variant="default"
-                  onClick={addTestItems}
-                  iconName="Plus"
+                  onClick={() => navigate('/product-collection-grid')}
+                  iconName="ArrowRight"
                   iconPosition="left"
                 >
-                  Add Test Items (for testing)
+                  View More
                 </Button>
               </div>
             </div>

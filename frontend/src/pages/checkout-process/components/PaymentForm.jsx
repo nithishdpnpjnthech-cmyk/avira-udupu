@@ -478,7 +478,7 @@ const PaymentForm = ({ onNext, onBack, orderTotal, paymentMethod: initialPayment
                   Cash on Delivery
                 </h4>
                 <ul className="font-body text-sm text-muted-foreground space-y-1">
-                  <li>• Pay ₹{orderTotal?.toFixed(2)} when your order is delivered</li>
+                  <li>• Pay ₹{typeof orderTotal === 'object' && orderTotal?.total ? orderTotal.total.toFixed(2) : typeof orderTotal === 'number' ? orderTotal.toFixed(2) : '0.00'} when your order is delivered</li>
                   {/* <li>• Please keep exact change ready</li>
                   <li>• COD available for orders up to ₹5,000</li>
                   <li>• Additional verification may be required</li> */}

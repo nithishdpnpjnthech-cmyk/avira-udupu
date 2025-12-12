@@ -21,6 +21,7 @@ public class ProductVariant {
     private Double price;
     private Double originalPrice;
     private Integer stockQuantity;
+    private Boolean inStock = true; // Track if variant is in stock
 
     @Column(length = 50)
     private String color;
@@ -58,6 +59,9 @@ public class ProductVariant {
 
     public Integer getStockQuantity() { return stockQuantity; }
     public void setStockQuantity(Integer stockQuantity) { this.stockQuantity = stockQuantity; }
+
+    public Boolean getInStock() { return inStock; }
+    public void setInStock(Boolean inStock) { this.inStock = inStock; }
 
     public String getColor() { return color; }
     public void setColor(String color) { this.color = color; }

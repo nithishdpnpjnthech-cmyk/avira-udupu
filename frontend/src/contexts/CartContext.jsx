@@ -74,15 +74,28 @@ export const CartProvider = ({ children }) => {
         try {
           const serverCart = await cartApi.getCart(user.email);
           setCartItems(
-            serverCart.map((ci) => ({
-              id: ci.productId,
-              name: ci.name,
-              image: resolveImageUrl(ci.imageUrl || ci.image),
-              price: ci.price,
-              originalPrice: ci.originalPrice || ci.price,
-              quantity: ci.quantity,
-              variant: 'Default',
-            }))
+            serverCart.map((ci) => {
+              // Create cart item ID matching the format used in addToCart
+              const cartItemId = ci.variantId 
+                ? `${ci.productId}-${ci.variantId}`
+                : ci.productId;
+              
+              return {
+                backendId: ci.id,
+                id: ci.productId,
+                cartItemId: cartItemId,
+                variantId: ci.variantId,
+                name: ci.name,
+                image: resolveImageUrl(ci.variantImage || ci.imageUrl || ci.image),
+                price: ci.price,
+                originalPrice: ci.originalPrice || ci.price,
+                quantity: ci.quantity,
+                variant: ci.variantName || ci.variantColor || 'Default',
+                variantColor: ci.variantColor,
+                weightValue: ci.weightValue,
+                weightUnit: ci.weightUnit,
+              };
+            })
           );
         } catch {
           const savedCart = localStorage.getItem('neenu_cart');
@@ -174,6 +187,13 @@ export const CartProvider = ({ children }) => {
         const apiResponse = await cartApi.add(user.email, {
           productId: sanitizedProduct.productId || sanitizedProduct.id,
           quantity: sanitizedProduct.quantity,
+          variantId: sanitizedProduct.variantId,
+          variant: sanitizedProduct.variant,
+          variantImage: sanitizedProduct.image,
+          variantColor: sanitizedProduct.color || sanitizedProduct.variantColor,
+          weightValue: sanitizedProduct.weightValue,
+          weightUnit: sanitizedProduct.weightUnit,
+          price: sanitizedProduct.price,
         });
 
         setCartItems((prev) => {
@@ -186,6 +206,7 @@ export const CartProvider = ({ children }) => {
               item.cartItemId === cartItemId
                 ? {
                     ...item,
+                    backendId: apiResponse.id ?? item.backendId,
                     quantity: apiResponse.quantity,
                     price: sanitizedProduct.price, // Use variant price from payload
                     originalPrice: sanitizedProduct.originalPrice || apiResponse.originalPrice || apiResponse.price,
@@ -201,6 +222,7 @@ export const CartProvider = ({ children }) => {
                 id: sanitizedProduct.id, // Original product ID
                 cartItemId: cartItemId, // Unique ID combining product and variant
                 variantId: sanitizedProduct.variantId, // Variant ID for tracking
+                backendId: apiResponse.id,
                 name: sanitizedProduct.name, // Use name from payload
                 image: sanitizedProduct.image || resolveImageUrl(apiResponse.imageUrl), // Use variant image from payload
                 price: sanitizedProduct.price, // Use variant price from payload
@@ -254,21 +276,34 @@ export const CartProvider = ({ children }) => {
       removeFromCart(itemId);
       return;
     }
+    const targetItem = cartItems.find((item) => item.cartItemId === itemId || item.id === itemId);
     setCartItems((prev) =>
       prev.map((item) => (item.cartItemId === itemId || item.id === itemId ? { ...item, quantity: newQuantity } : item))
     );
-    if (user?.email) {
+    if (user?.email && targetItem) {
       try {
-        await cartApi.update(user.email, { productId: itemId, quantity: newQuantity });
+        await cartApi.update(user.email, {
+          productId: targetItem.id || targetItem.productId,
+          variantId: targetItem.variantId,
+          variant: targetItem.variant,
+          variantColor: targetItem.variantColor,
+          quantity: newQuantity,
+        });
       } catch {}
     }
   };
 
   const removeFromCart = async (itemId) => {
+    const targetItem = cartItems.find((item) => item.cartItemId === itemId || item.id === itemId);
     setCartItems((prev) => prev.filter((item) => item.cartItemId !== itemId && item.id !== itemId));
-    if (user?.email) {
+    if (user?.email && targetItem) {
       try {
-        await cartApi.remove(user.email, { productId: itemId });
+        await cartApi.remove(user.email, {
+          productId: targetItem.id || targetItem.productId,
+          variantId: targetItem.variantId,
+          variant: targetItem.variant,
+          variantColor: targetItem.variantColor,
+        });
       } catch {}
     }
   };

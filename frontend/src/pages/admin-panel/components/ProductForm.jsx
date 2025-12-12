@@ -42,16 +42,43 @@ const ProductForm = ({ product, onSave, onCancel }) => {
   const [error, setError] = useState('');
 
   const resolveImageUrl = (candidate) => {
-    if (!candidate) return '';
+    if (!candidate) {
+      return '';
+    }
+    
+    // If it's already a full URL, return as-is
     if (candidate.startsWith('http://') || candidate.startsWith('https://') || candidate.startsWith('data:')) {
       return candidate;
     }
-    const base = apiClient?.defaults?.baseURL || '';
-    return candidate.startsWith('/') ? `${base}${candidate}` : `${base}/${candidate}`;
+    
+    // Backend serves uploads at http://localhost:8080/uploads/filename
+    // Database stores paths as /uploads/filename
+    const baseURL = 'http://localhost:8080';
+    
+    // If it starts with /uploads, just prepend baseURL
+    if (candidate.startsWith('/uploads')) {
+      return `${baseURL}${candidate}`;
+    }
+    
+    // If it's just a filename, prepend /uploads/
+    if (!candidate.startsWith('/')) {
+      return `${baseURL}/uploads/${candidate}`;
+    }
+    
+    // Fallback: treat as relative path from root
+    return `${baseURL}${candidate}`;
   };
 
   useEffect(() => {
     if (product && typeof product === 'object') {
+      console.log('ProductForm: Loading product details', {
+        productId: product.id,
+        name: product.name,
+        hasVariants: !!product.variants,
+        variantsCount: product.variants?.length || 0,
+        variantsData: product.variants
+      });
+
       setFormData({
         name: product.name || '',
         description: product.description || '',
@@ -63,23 +90,47 @@ const ProductForm = ({ product, onSave, onCancel }) => {
       
       // Load existing variants or create from product-level data
       if (product.variants && product.variants.length > 0) {
-        setColorVariants(product.variants.map(v => ({
-          id: v.id || Date.now() + Math.random(),
-          price: v.price ? v.price.toString() : '',
-          originalPrice: v.originalPrice ? v.originalPrice.toString() : '',
-          color: v.color || '',
-          stockQuantity: v.stockQuantity ? v.stockQuantity.toString() : '',
-          mainImage: null,
-          subImage1: null,
-          subImage2: null,
-          subImage3: null,
-          existingMainImage: resolveImageUrl(v.mainImage || ''),
-          existingSubImage1: resolveImageUrl(v.subImage1 || ''),
-          existingSubImage2: resolveImageUrl(v.subImage2 || ''),
-          existingSubImage3: resolveImageUrl(v.subImage3 || '')
-        })));
+        console.log('ProductForm: Loading variants from product.variants array');
+        setColorVariants(product.variants.map((v, idx) => {
+          const resolvedImages = {
+            mainImage: resolveImageUrl(v.mainImage || ''),
+            subImage1: resolveImageUrl(v.subImage1 || ''),
+            subImage2: resolveImageUrl(v.subImage2 || ''),
+            subImage3: resolveImageUrl(v.subImage3 || '')
+          };
+          console.log(`ProductForm: Mapping variant ${idx} (${v.color}):`, {
+            id: v.id,
+            color: v.color,
+            price: v.price,
+            originalPrice: v.originalPrice,
+            stockQuantity: v.stockQuantity,
+            rawImages: {
+              mainImage: v.mainImage,
+              subImage1: v.subImage1,
+              subImage2: v.subImage2,
+              subImage3: v.subImage3
+            },
+            resolvedImages
+          });
+          return {
+            id: v.id || Date.now() + Math.random(),
+            price: v.price ? v.price.toString() : '',
+            originalPrice: v.originalPrice ? v.originalPrice.toString() : '',
+            color: v.color || '',
+            stockQuantity: v.stockQuantity ? v.stockQuantity.toString() : '',
+            mainImage: null,
+            subImage1: null,
+            subImage2: null,
+            subImage3: null,
+            existingMainImage: resolvedImages.mainImage,
+            existingSubImage1: resolvedImages.subImage1,
+            existingSubImage2: resolvedImages.subImage2,
+            existingSubImage3: resolvedImages.subImage3
+          };
+        }));
       } else {
         // Fallback: create variant from product-level data
+        console.log('ProductForm: Creating variant from product-level data (no variants array)');
         setColorVariants([{
           id: Date.now(),
           price: product.price ? product.price.toString() : '',
@@ -97,6 +148,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
         }]);
       }
     } else {
+      console.log('ProductForm: Resetting form for new product');
       setFormData({
         name: '',
         description: '',
@@ -595,15 +647,32 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                       onChange={(e) => handleImageUpload(e, variant.id, 'mainImage')}
                       className="w-full px-2 py-1.5 border border-border rounded-md bg-background text-foreground text-xs file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                     />
-                    {(variant.mainImage || variant.existingMainImage) && (
+                    {variant.mainImage && (
                       <div className="mt-2">
                         <img
-                          src={variant.mainImage ? URL.createObjectURL(variant.mainImage) : variant.existingMainImage}
+                          src={URL.createObjectURL(variant.mainImage)}
                           alt="Main"
                           className="w-20 h-20 object-cover rounded-md border"
                           onError={(e) => { e.currentTarget.src = '/assets/images/no_image.png'; }}
                         />
                       </div>
+                    )}
+                    {!variant.mainImage && variant.existingMainImage && (
+                      <div className="mt-2">
+                        <img
+                          src={variant.existingMainImage}
+                          alt="Main"
+                          className="w-20 h-20 object-cover rounded-md border"
+                          onError={(e) => { 
+                            console.warn('Failed to load main image from URL:', variant.existingMainImage);
+                            e.currentTarget.src = '/assets/images/no_image.png'; 
+                          }}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Existing image</p>
+                      </div>
+                    )}
+                    {!variant.mainImage && !variant.existingMainImage && (
+                      <p className="text-xs text-muted-foreground mt-1">No image uploaded yet</p>
                     )}
                   </div>
 
@@ -643,13 +712,26 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                         onChange={(e) => handleImageUpload(e, variant.id, 'subImage2')}
                         className="w-full px-2 py-1 border border-border rounded-md bg-background text-foreground text-xs file:mr-1 file:py-0.5 file:px-2 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                       />
-                      {(variant.subImage2 || variant.existingSubImage2) && (
+                      {variant.subImage2 && (
                         <div className="mt-1">
                           <img
-                            src={variant.subImage2 ? URL.createObjectURL(variant.subImage2) : variant.existingSubImage2}
+                            src={URL.createObjectURL(variant.subImage2)}
                             alt="Sub 2"
                             className="w-16 h-16 object-cover rounded-md border"
                             onError={(e) => { e.currentTarget.src = '/assets/images/no_image.png'; }}
+                          />
+                        </div>
+                      )}
+                      {!variant.subImage2 && variant.existingSubImage2 && (
+                        <div className="mt-1">
+                          <img
+                            src={variant.existingSubImage2}
+                            alt="Sub 2"
+                            className="w-16 h-16 object-cover rounded-md border"
+                            onError={(e) => { 
+                              console.warn('Failed to load sub image 2:', variant.existingSubImage2);
+                              e.currentTarget.src = '/assets/images/no_image.png'; 
+                            }}
                           />
                         </div>
                       )}
@@ -666,13 +748,26 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                         onChange={(e) => handleImageUpload(e, variant.id, 'subImage3')}
                         className="w-full px-2 py-1 border border-border rounded-md bg-background text-foreground text-xs file:mr-1 file:py-0.5 file:px-2 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                       />
-                      {(variant.subImage3 || variant.existingSubImage3) && (
+                      {variant.subImage3 && (
                         <div className="mt-1">
                           <img
-                            src={variant.subImage3 ? URL.createObjectURL(variant.subImage3) : variant.existingSubImage3}
+                            src={URL.createObjectURL(variant.subImage3)}
                             alt="Sub 3"
                             className="w-16 h-16 object-cover rounded-md border"
                             onError={(e) => { e.currentTarget.src = '/assets/images/no_image.png'; }}
+                          />
+                        </div>
+                      )}
+                      {!variant.subImage3 && variant.existingSubImage3 && (
+                        <div className="mt-1">
+                          <img
+                            src={variant.existingSubImage3}
+                            alt="Sub 3"
+                            className="w-16 h-16 object-cover rounded-md border"
+                            onError={(e) => { 
+                              console.warn('Failed to load sub image 3:', variant.existingSubImage3);
+                              e.currentTarget.src = '/assets/images/no_image.png'; 
+                            }}
                           />
                         </div>
                       )}

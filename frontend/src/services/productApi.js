@@ -4,13 +4,22 @@ import cache from './simpleCache';
 const productApi = {
   async getAll(params = {}) {
     try {
-      const cacheKey = `products:${JSON.stringify(params)}`;
-      const { cached, fresh } = cache.staleWhileRevalidate(cacheKey, async () => {
-  console.log('ProductAPI: Fetching all products with params:', params);
-  const res = await import('./api').then(m => m.getWithRetry('/admin/products', { params }));
+      const { forceRefresh, ...query } = params;
+      const cacheKey = `products:${JSON.stringify(query)}`;
+      const fetchProducts = async () => {
+  console.log('ProductAPI: Fetching all products with params:', query);
+  const res = await import('./api').then(m => m.getWithRetry('/admin/products', { params: query }));
         console.log('ProductAPI: Successfully fetched products:', res.data?.length || 0);
         return res.data;
-      }, 30 * 1000, true);
+      };
+
+      if (forceRefresh) {
+        const fresh = await fetchProducts();
+        cache.setCache(cacheKey, fresh, 30 * 1000, true);
+        return fresh;
+      }
+
+      const { cached, fresh } = cache.staleWhileRevalidate(cacheKey, fetchProducts, 30 * 1000, true);
 
       if (cached) return cached;
       return await fresh;
@@ -31,19 +40,28 @@ const productApi = {
     }
   },
 
-  async getById(productId) {
+  async getById(productId, options = {}) {
     try {
       if (!productId) {
         throw new Error('Product ID is required');
       }
-      
+
+      const { forceRefresh = false } = options;
       const cacheKey = `product:${productId}`;
-      const { cached, fresh } = cache.staleWhileRevalidate(cacheKey, async () => {
+      const fetchProduct = async () => {
   console.log('ProductAPI: Fetching product by ID:', productId);
   const res = await import('./api').then(m => m.getWithRetry(`/admin/products/${productId}`));
         console.log('ProductAPI: Successfully fetched product:', res.data?.name || res.data?.id);
         return res.data;
-      }, 30 * 1000, true);
+      };
+
+      if (forceRefresh) {
+        const fresh = await fetchProduct();
+        cache.setCache(cacheKey, fresh, 30 * 1000, true);
+        return fresh;
+      }
+
+      const { cached, fresh } = cache.staleWhileRevalidate(cacheKey, fetchProduct, 30 * 1000, true);
 
       if (cached) return cached;
       return await fresh;

@@ -6,9 +6,9 @@ import Button from '../../../components/ui/Button';
 const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
   const handleQuantityChange = (newQuantity) => {
     if (newQuantity === 0) {
-      onRemoveItem(item?.id);
+      onRemoveItem(item?.cartItemId || item?.id);
     } else {
-      onUpdateQuantity(item?.id, newQuantity);
+      onUpdateQuantity(item?.cartItemId || item?.id, newQuantity);
     }
   };
 
@@ -51,7 +51,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
               )}
             </div>
             <button
-              onClick={() => onRemoveItem(item?.id)}
+              onClick={() => onRemoveItem(item?.cartItemId || item?.id)}
               className="p-1 hover:bg-destructive/10 hover:text-destructive rounded transition-colors duration-200 ml-2"
               aria-label="Remove item"
             >
@@ -117,7 +117,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onSaveForLater(item?.id)}
+              onClick={() => onSaveForLater(item?.cartItemId || item?.id)}
               iconName="Heart"
               iconPosition="left"
               iconSize={14}

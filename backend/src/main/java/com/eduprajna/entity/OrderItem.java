@@ -27,6 +27,12 @@ public class OrderItem {
     @Column(nullable = false)
     private Double price; // per item at time of order
 
+    @Column(name = "variant_id")
+    private Long variantId; // Track which variant was ordered
+
+    @Column(name = "variant_name", length = 100)
+    private String variantName; // e.g., "Red", "200ml", etc.
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Order getOrder() { return order; }
@@ -37,6 +43,10 @@ public class OrderItem {
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
     public Double getPrice() { return price; }
     public void setPrice(Double price) { this.price = price; }
+    public Long getVariantId() { return variantId; }
+    public void setVariantId(Long variantId) { this.variantId = variantId; }
+    public String getVariantName() { return variantName; }
+    public void setVariantName(String variantName) { this.variantName = variantName; }
 }
 
 

@@ -45,10 +45,19 @@ public class CartController {
         dto.id = ci.getId();
         dto.productId = ci.getProduct().getId();
         dto.name = ci.getProduct().getName();
-        dto.imageUrl = ci.getProduct().getImageUrl();
+        dto.imageUrl = ci.getVariantImage() != null ? ci.getVariantImage() : ci.getProduct().getImageUrl();
         dto.quantity = ci.getQuantity();
         dto.price = ci.getPriceAtAdd();
         dto.lineTotal = (ci.getPriceAtAdd() != null ? ci.getPriceAtAdd() : 0.0) * ci.getQuantity();
+        
+        // Include variant information
+        dto.variantId = ci.getVariantId();
+        dto.variantName = ci.getVariantName();
+        dto.variantImage = ci.getVariantImage();
+        dto.variantColor = ci.getVariantColor();
+        dto.weightValue = ci.getWeightValue();
+        dto.weightUnit = ci.getWeightUnit();
+        
         return dto;
     }
 
@@ -93,14 +102,20 @@ public class CartController {
             
             // Handle both numeric and string product IDs
             Long productId;
+            Long inferredVariantId = null;
             Object productIdObj = body.get("productId");
             if (productIdObj instanceof Number) {
                 productId = ((Number) productIdObj).longValue();
             } else if (productIdObj instanceof String) {
                 String productIdStr = (String) productIdObj;
-                // Extract numeric part from strings like "2-default"
-                String numericPart = productIdStr.split("-")[0];
+                String[] parts = productIdStr.split("-");
+                String numericPart = parts[0];
                 productId = Long.parseLong(numericPart);
+                if (parts.length > 1) {
+                    try {
+                        inferredVariantId = Long.parseLong(parts[1]);
+                    } catch (NumberFormatException ignored) {}
+                }
             } else {
                 return ResponseEntity.badRequest().body("Invalid product ID format");
             }
@@ -108,22 +123,16 @@ public class CartController {
             int quantity = body.get("quantity") == null ? 1 : ((Number) body.get("quantity")).intValue();
             
             // Extract variant information if provided
-            Long variantId = body.get("variantId") != null ? ((Number) body.get("variantId")).longValue() : null;
+            Long variantId = body.get("variantId") != null ? ((Number) body.get("variantId")).longValue() : inferredVariantId;
             String variantName = body.get("variant") != null ? (String) body.get("variant") : null;
+            String variantImage = body.get("variantImage") != null ? (String) body.get("variantImage") : null;
+            String variantColor = body.get("variantColor") != null ? (String) body.get("variantColor") : null;
             Double weightValue = body.get("weightValue") != null ? ((Number) body.get("weightValue")).doubleValue() : null;
             String weightUnit = body.get("weightUnit") != null ? (String) body.get("weightUnit") : null;
             Double price = body.get("price") != null ? ((Number) body.get("price")).doubleValue() : null;
             
             User user = requireUser(email);
-            
-            // If a variant is being added, remove all old items of the same product first
-            // This ensures only one variant of a product is in the cart at a time
-            if (variantId != null || variantName != null) {
-                logger.debug("Variant specified, removing old items of product {} for user: {}", productId, email);
-                cartService.removeItemByProductId(user, productId);
-            }
-            
-            CartItem ci = cartService.addToCart(user, productId, quantity, variantId, variantName, weightValue, weightUnit, price);
+            CartItem ci = cartService.addToCart(user, productId, quantity, variantId, variantName, variantImage, variantColor, weightValue, weightUnit, price);
             
             logger.info("Added product {} to cart for user: {}", productId, email);
             return ResponseEntity.ok(toDTO(ci));
@@ -154,12 +163,32 @@ public class CartController {
             if (body.get("productId") == null || body.get("quantity") == null) {
                 return ResponseEntity.badRequest().body("Product ID and quantity are required");
             }
-            
-            Long productId = ((Number) body.get("productId")).longValue();
+
+            Object productIdObj = body.get("productId");
+            Long productId;
+            Long inferredVariantId = null;
+            if (productIdObj instanceof Number) {
+                productId = ((Number) productIdObj).longValue();
+            } else if (productIdObj instanceof String) {
+                String productIdStr = (String) productIdObj;
+                String[] parts = productIdStr.split("-");
+                productId = Long.parseLong(parts[0]);
+                if (parts.length > 1) {
+                    try {
+                        inferredVariantId = Long.parseLong(parts[1]);
+                    } catch (NumberFormatException ignored) {}
+                }
+            } else {
+                return ResponseEntity.badRequest().body("Invalid product ID format");
+            }
+
             int quantity = ((Number) body.get("quantity")).intValue();
+            Long variantId = body.get("variantId") != null ? ((Number) body.get("variantId")).longValue() : inferredVariantId;
+            String variantName = body.get("variant") != null ? (String) body.get("variant") : null;
+            String variantColor = body.get("variantColor") != null ? (String) body.get("variantColor") : null;
             
             User user = requireUser(email);
-            CartItem ci = cartService.updateQuantity(user, productId, quantity);
+            CartItem ci = cartService.updateQuantity(user, productId, quantity, variantId, variantName, variantColor);
             
             logger.info("Updated cart item quantity for product {} for user: {}", productId, email);
             return ResponseEntity.ok(toDTO(ci));
@@ -190,10 +219,30 @@ public class CartController {
             if (body.get("productId") == null) {
                 return ResponseEntity.badRequest().body("Product ID is required");
             }
-            
-            Long productId = ((Number) body.get("productId")).longValue();
+
+            Object productIdObj = body.get("productId");
+            Long productId;
+            Long inferredVariantId = null;
+            if (productIdObj instanceof Number) {
+                productId = ((Number) productIdObj).longValue();
+            } else if (productIdObj instanceof String) {
+                String productIdStr = (String) productIdObj;
+                String[] parts = productIdStr.split("-");
+                productId = Long.parseLong(parts[0]);
+                if (parts.length > 1) {
+                    try {
+                        inferredVariantId = Long.parseLong(parts[1]);
+                    } catch (NumberFormatException ignored) {}
+                }
+            } else {
+                return ResponseEntity.badRequest().body("Invalid product ID format");
+            }
+
+            Long variantId = body.get("variantId") != null ? ((Number) body.get("variantId")).longValue() : inferredVariantId;
+            String variantName = body.get("variant") != null ? (String) body.get("variant") : null;
+            String variantColor = body.get("variantColor") != null ? (String) body.get("variantColor") : null;
             User user = requireUser(email);
-            cartService.removeItem(user, productId);
+            cartService.removeItem(user, productId, variantId, variantName, variantColor);
             
             logger.info("Removed product {} from cart for user: {}", productId, email);
             return ResponseEntity.noContent().build();
