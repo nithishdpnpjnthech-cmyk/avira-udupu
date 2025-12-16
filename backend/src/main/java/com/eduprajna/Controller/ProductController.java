@@ -12,6 +12,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,7 +35,7 @@ import com.eduprajna.service.StorageService;
 
 @RestController
 @RequestMapping("/api/admin/products")
-@CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000"}, allowCredentials = "true")
+@CrossOrigin(origins = { "http://localhost:3000", "http://127.0.0.1:3000" }, allowCredentials = "true")
 
 public class ProductController {
     @Autowired
@@ -51,19 +52,21 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<Product> getById(@PathVariable Long id) {
         Product p = productService.getById(id);
-        if (p == null) return ResponseEntity.notFound().build();
+        if (p == null)
+            return ResponseEntity.notFound().build();
         return ResponseEntity.ok(p);
     }
 
-    @PostMapping(consumes = {"multipart/form-data"})
+    @PostMapping(consumes = { "multipart/form-data" })
     public ResponseEntity<Product> create(
             @RequestPart("product") Product p,
             @RequestParam(required = false) Map<String, MultipartFile> allFiles,
-            @RequestPart(value = "variants", required = false) String variantsJson
-    ) throws IOException {
+            @RequestPart(value = "variants", required = false) String variantsJson) throws IOException {
         // Handle variants if provided
         if (variantsJson != null && !variantsJson.isBlank()) {
-            List<ProductVariant> variants = new ObjectMapper().readValue(variantsJson, new TypeReference<List<ProductVariant>>() {});
+            List<ProductVariant> variants = new ObjectMapper().readValue(variantsJson,
+                    new TypeReference<List<ProductVariant>>() {
+                    });
             for (int i = 0; i < variants.size(); i++) {
                 ProductVariant variant = variants.get(i);
 
@@ -95,126 +98,77 @@ public class ProductController {
         return ResponseEntity.ok(saved);
     }
 
-    @PutMapping(value = "/{id}", consumes = {"application/json"})
+    @PutMapping(value = "/{id}", consumes = { "application/json" })
+    @Transactional
     public ResponseEntity<Product> updateJson(
             @PathVariable Long id,
-            @RequestBody Product p
-    ) {
-        p.setId(id);
-        
-        System.out.println("=== JSON Update for Product ID: " + id + " ===");
-        System.out.println("Incoming variants count: " + (p.getVariants() != null ? p.getVariants().size() : 0));
+            @RequestBody Product p) {
+        org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProductController.class);
         if (p.getVariants() != null) {
-            for (int i = 0; i < p.getVariants().size(); i++) {
-                com.eduprajna.entity.ProductVariant v = p.getVariants().get(i);
-                System.out.println("Incoming Variant " + i + ": ID=" + v.getId() + ", Color=" + v.getColor() + ", Stock=" + v.getStockQuantity());
-            }
+            p.getVariants().forEach(v -> log.info("Incoming JSON variant: id={}, color={}, stock={}, price={}",
+                    v.getId(), v.getColor(), v.getStockQuantity(), v.getPrice()));
         }
-        
-        // Fetch existing product to merge variants properly
-        Product existing = productService.getById(id);
-        if (existing != null && existing.getVariants() != null && !existing.getVariants().isEmpty()) {
-            System.out.println("Existing variants count: " + existing.getVariants().size());
-            for (int i = 0; i < existing.getVariants().size(); i++) {
-                com.eduprajna.entity.ProductVariant v = existing.getVariants().get(i);
-                System.out.println("Existing Variant " + i + ": ID=" + v.getId() + ", Color=" + v.getColor() + ", Stock=" + v.getStockQuantity());
-            }
-            
-            // If incoming product has variants, update them by ID or replace
-            if (p.getVariants() != null && !p.getVariants().isEmpty()) {
-                // Create a map of existing variants by ID for quick lookup
-                java.util.Map<Long, com.eduprajna.entity.ProductVariant> existingVariantsMap = 
-                    new java.util.HashMap<>();
-                for (com.eduprajna.entity.ProductVariant v : existing.getVariants()) {
-                    if (v.getId() != null) {
-                        existingVariantsMap.put(v.getId(), v);
-                    }
-                }
-                
-                System.out.println("Existing variants map size: " + existingVariantsMap.size());
-                
-                // Create a map of incoming variants by ID
-                java.util.Map<Long, com.eduprajna.entity.ProductVariant> incomingVariantsMap = 
-                    new java.util.HashMap<>();
-                java.util.List<com.eduprajna.entity.ProductVariant> newVariants = 
-                    new java.util.ArrayList<>();
-                
-                for (com.eduprajna.entity.ProductVariant incomingVariant : p.getVariants()) {
-                    if (incomingVariant.getId() != null) {
-                        incomingVariantsMap.put(incomingVariant.getId(), incomingVariant);
-                    } else {
-                        newVariants.add(incomingVariant);
-                    }
-                }
-                
-                System.out.println("Incoming variants map size: " + incomingVariantsMap.size());
-                System.out.println("New variants: " + newVariants.size());
-                
-                // Preserve all existing variants and update only those present in incoming
-                java.util.List<com.eduprajna.entity.ProductVariant> finalVariants = 
-                    new java.util.ArrayList<>();
-                
-                for (com.eduprajna.entity.ProductVariant existingVariant : existing.getVariants()) {
-                    if (incomingVariantsMap.containsKey(existingVariant.getId())) {
-                        System.out.println("Updating variant ID: " + existingVariant.getId());
-                        // Update this variant with incoming data
-                        com.eduprajna.entity.ProductVariant incomingVariant = incomingVariantsMap.get(existingVariant.getId());
-                        
-                        if (incomingVariant.getPrice() != null) {
-                            existingVariant.setPrice(incomingVariant.getPrice());
-                        }
-                        if (incomingVariant.getOriginalPrice() != null) {
-                            existingVariant.setOriginalPrice(incomingVariant.getOriginalPrice());
-                        }
-                        if (incomingVariant.getStockQuantity() != null) {
-                            existingVariant.setStockQuantity(incomingVariant.getStockQuantity());
-                            System.out.println("Updated stock for variant ID " + existingVariant.getId() + " to " + existingVariant.getStockQuantity());
-                        }
-                        if (incomingVariant.getInStock() != null) {
-                            existingVariant.setInStock(incomingVariant.getInStock());
-                        }
-                        if (incomingVariant.getColor() != null) {
-                            existingVariant.setColor(incomingVariant.getColor());
-                        }
-                    } else {
-                        System.out.println("Keeping variant ID: " + existingVariant.getId() + " unchanged");
-                    }
-                    finalVariants.add(existingVariant);
-                }
-                
-                // Add any new variants
-                finalVariants.addAll(newVariants);
-                
-                System.out.println("Final variants count: " + finalVariants.size());
-                
-                p.setVariants(finalVariants);
-            } else {
-                // No variants in incoming, keep existing
-                p.setVariants(existing.getVariants());
-            }
-        }
-        
-        return ResponseEntity.ok(productService.save(p));
+        return ResponseEntity.ok(productService.updateProduct(id, p));
     }
 
-    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    @PutMapping("/{productId}/variants/{variantId}/stock")
+    public ResponseEntity<Map<String, Object>> updateVariantStock(
+            @PathVariable Long productId,
+            @PathVariable Long variantId,
+            @RequestBody Map<String, Object> body) {
+        Integer stockQuantity = null;
+        if (body != null && body.get("stockQuantity") != null) {
+            Object raw = body.get("stockQuantity");
+            if (raw instanceof Number) {
+                stockQuantity = ((Number) raw).intValue();
+            } else {
+                try {
+                    stockQuantity = Integer.parseInt(raw.toString());
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+
+        if (stockQuantity == null) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "stockQuantity is required");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        try {
+            ProductVariant updated = productService.updateVariantStock(productId, variantId, stockQuantity);
+            Map<String, Object> response = new HashMap<>();
+            response.put("productId", productId);
+            response.put("variantId", variantId);
+            response.put("stockQuantity", updated.getStockQuantity());
+            response.put("inStock", updated.getInStock());
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException ex) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", ex.getMessage());
+            return ResponseEntity.status(404).body(error);
+        }
+    }
+
+    @PutMapping(value = "/{id}", consumes = { "multipart/form-data" })
     public ResponseEntity<Product> updateMultipart(
             @PathVariable Long id,
             @RequestPart("product") Product p,
             @RequestParam(required = false) Map<String, MultipartFile> allFiles,
-            @RequestPart(value = "variants", required = false) String variantsJson
-    ) throws IOException {
+            @RequestPart(value = "variants", required = false) String variantsJson) throws IOException {
         p.setId(id);
 
         // Handle variants if provided
         if (variantsJson != null && !variantsJson.isBlank()) {
-            List<ProductVariant> variants = new ObjectMapper().readValue(variantsJson, new TypeReference<List<ProductVariant>>() {});
+            List<ProductVariant> variants = new ObjectMapper().readValue(variantsJson,
+                    new TypeReference<List<ProductVariant>>() {
+                    });
             // Clear existing variants
             p.getVariants().clear();
-            
-                // Add new variants
-                for (int i = 0; i < variants.size(); i++) {
-                    ProductVariant variant = variants.get(i);
+
+            // Add new variants
+            for (int i = 0; i < variants.size(); i++) {
+                ProductVariant variant = variants.get(i);
 
                 if (allFiles != null) {
                     MultipartFile variantMainImage = allFiles.get("variant_" + i + "_mainImage");
@@ -239,7 +193,7 @@ public class ProductController {
                 p.addVariant(variant);
             }
         }
-        
+
         return ResponseEntity.ok(productService.save(p));
     }
 
@@ -253,19 +207,23 @@ public class ProductController {
                     // Delete all variant images
                     if (variant.getMainImage() != null) {
                         String filename = storageService.extractFilenameFromUrl(variant.getMainImage());
-                        if (filename != null) storageService.delete(filename);
+                        if (filename != null)
+                            storageService.delete(filename);
                     }
                     if (variant.getSubImage1() != null) {
                         String filename = storageService.extractFilenameFromUrl(variant.getSubImage1());
-                        if (filename != null) storageService.delete(filename);
+                        if (filename != null)
+                            storageService.delete(filename);
                     }
                     if (variant.getSubImage2() != null) {
                         String filename = storageService.extractFilenameFromUrl(variant.getSubImage2());
-                        if (filename != null) storageService.delete(filename);
+                        if (filename != null)
+                            storageService.delete(filename);
                     }
                     if (variant.getSubImage3() != null) {
                         String filename = storageService.extractFilenameFromUrl(variant.getSubImage3());
-                        if (filename != null) storageService.delete(filename);
+                        if (filename != null)
+                            storageService.delete(filename);
                     }
                 }
             }

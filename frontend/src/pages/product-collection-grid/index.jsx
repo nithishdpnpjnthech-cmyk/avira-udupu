@@ -356,12 +356,15 @@ const ProductCollectionGrid = () => {
       id: product?.id,
       productId: product?.id, // Add productId for API compatibility
       name: product?.name,
-      image: product?.image,
-      price: variant?.price || product?.price, // Use 'price' instead of 'salePrice'
+      image: variant?.mainImage || product?.image,
+      price: variant?.salePrice || variant?.price || product?.salePrice || product?.price, // Use salePrice
       originalPrice: variant?.originalPrice || product?.originalPrice,
-      variant: variant?.weight || 'Default',
+      variant: variant?.color || variant?.weight || 'Default',
+      variantId: variant?.id,
+      variantColor: variant?.color,
       category: product?.category,
-      brand: product?.brand
+      brand: product?.brand,
+      stock: variant?.stock ?? product?.stockQuantity
     };
 
     addToCart(productToAdd, quantity);

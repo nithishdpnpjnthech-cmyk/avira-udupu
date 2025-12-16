@@ -6,9 +6,18 @@ import Button from '../../../components/ui/Button';
 
 const RelatedProducts = ({ products, onAddToCart }) => {
   const handleAddToCart = (product) => {
+    const variant = product?.variants?.[0];
+    const variantLabel = variant?.color || variant?.weight || 'Default';
+
     onAddToCart({
       productId: product?.id,
-      variantId: product?.variants?.[0]?.id,
+      variantId: variant?.id,
+      variant: variantLabel,
+      color: variant?.color,
+      image: variant?.mainImage || product?.image,
+      price: variant?.price,
+      originalPrice: variant?.originalPrice,
+      productData: product,
       quantity: 1
     });
   };
@@ -66,17 +75,17 @@ const RelatedProducts = ({ products, onAddToCart }) => {
                     </h4>
                   </Link>
                   <p className="font-caption text-sm text-muted-foreground mt-1">
-                    {product?.variants?.[0]?.weight}
+                    {product?.variants?.[0]?.color || product?.variants?.[0]?.weight || 'Default'}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <span className="font-data font-semibold text-foreground">
-                    ₹{product?.variants?.[0]?.price?.toFixed(2)}
+                    ₹{Number(product?.variants?.[0]?.price || 0).toFixed(2)}
                   </span>
                   {product?.variants?.[0]?.originalPrice > product?.variants?.[0]?.price && (
                     <span className="font-data text-sm text-muted-foreground line-through">
-                      ₹{product?.variants?.[0]?.originalPrice?.toFixed(2)}
+                      ₹{Number(product?.variants?.[0]?.originalPrice || 0).toFixed(2)}
                     </span>
                   )}
                 </div>

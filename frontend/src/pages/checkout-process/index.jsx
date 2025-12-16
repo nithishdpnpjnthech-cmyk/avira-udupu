@@ -85,7 +85,7 @@ const CheckoutProcess = () => {
             price: 399.0,
             originalPrice: 450.0,
             category: "Sweets",
-            brand: "Roots Traditional",
+            brand: "Avira Udupu",
             stock: 100,
             isActive: true
           },
@@ -95,7 +95,7 @@ const CheckoutProcess = () => {
             price: 280.0,
             originalPrice: 320.0,
             category: "Pickles",
-            brand: "Roots Traditional",
+            brand: "Avira Udupu",
             stock: 50,
             isActive: true
           }

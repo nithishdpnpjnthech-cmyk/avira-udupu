@@ -13,7 +13,7 @@ echo "Building Spring Boot application..."
 # Check if build was successful
 if [ $? -eq 0 ]; then
     echo "✅ Build completed successfully!"
-    echo "JAR file location: target/sanathana-parampara-0.0.1-SNAPSHOT.jar"
+    echo "JAR file location: target/avira-udupu-0.0.1-SNAPSHOT.jar"
 else
     echo "❌ Build failed!"
     exit 1

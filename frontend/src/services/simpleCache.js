@@ -71,4 +71,11 @@ export function staleWhileRevalidate(key, fetcher, ttl = defaultTTL, persist = f
   };
 }
 
-export default { setCache, getCache, staleWhileRevalidate };
+export function clearCache(key) {
+  cache.delete(key);
+  try {
+    localStorage.removeItem(`cache:${key}`);
+  } catch (e) {}
+}
+
+export default { setCache, getCache, staleWhileRevalidate, clearCache };

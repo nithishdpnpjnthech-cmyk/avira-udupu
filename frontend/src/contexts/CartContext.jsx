@@ -31,11 +31,11 @@ export const CartProvider = ({ children }) => {
   // Simple notification function
   const showNotification = (message, type = 'success') => {
     const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm flex items-start gap-3 ${
       type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
     }`;
     notification.innerHTML = `
-      <div class="flex items-center gap-2">
+      <div class="flex-1 flex items-center gap-2">
         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
           ${
             type === 'success'
@@ -46,11 +46,22 @@ export const CartProvider = ({ children }) => {
         <span>${message}</span>
       </div>
     `;
+
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.setAttribute('aria-label', 'Close notification');
+    closeBtn.className = 'ml-2 text-white/80 hover:text-white transition-colors';
+    closeBtn.innerHTML = '&#10005;';
+    closeBtn.onclick = () => notification.remove();
+    notification.appendChild(closeBtn);
+
     document.body.appendChild(notification);
 
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       notification.remove();
     }, 3000);
+
+    notification.addEventListener('remove', () => clearTimeout(timeoutId));
   };
 
   const { user } = useAuth();

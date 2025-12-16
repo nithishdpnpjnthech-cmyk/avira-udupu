@@ -122,9 +122,9 @@ const ShoppingCart = () => {
   return (
     <>
       <Helmet>
-        <title>Shopping Cart - Roots Traditional | Review Your Natural Products</title>
+        <title>Shopping Cart - Avira Udupu | Review Your Natural Products</title>
         <meta name="description" content="Review and modify your cart items. Secure checkout with natural and organic food products. Free shipping available on orders above ₹500 in Bengaluru." />
-        <meta name="keywords" content="shopping cart, natural products, organic food, checkout, free shipping, Roots Traditional" />
+        <meta name="keywords" content="shopping cart, natural products, organic food, checkout, free shipping, Avira Udupu" />
       </Helmet>
       <div className="min-h-screen bg-background">
         <Header 

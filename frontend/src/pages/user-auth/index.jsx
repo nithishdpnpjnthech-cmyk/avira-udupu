@@ -1,17 +1,17 @@
 
 import React, { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Header from '../../components/ui/Header';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import Icon from '../../components/AppIcon';
+import { apiClient } from '../../services/api';
 
 const UserAuth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { signIn, signUp } = useAuth ? useAuth() : { signIn: async () => ({ user: null, error: { message: 'No Auth' } }), signUp: async () => ({ user: null, error: { message: 'No Auth' } }) };
-  const [isLogin, setIsLogin] = useState(true);
+  const [authMode, setAuthMode] = useState('login'); // login | register | forgot
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
@@ -22,10 +22,16 @@ const UserAuth = () => {
     confirmPassword: ''
   });
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
+
+  const isLogin = authMode === 'login';
+  const isRegister = authMode === 'register';
+  const isForgot = authMode === 'forgot';
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError('');
+    setInfo('');
     if (errors[e.target.name]) {
       setErrors(prev => ({ ...prev, [e.target.name]: '' }));
     }
@@ -33,7 +39,7 @@ const UserAuth = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!isLogin && !formData.name.trim()) {
+    if (isRegister && !formData.name.trim()) {
       newErrors.name = 'Name is required';
     }
     if (!formData.email.trim()) {
@@ -41,15 +47,17 @@ const UserAuth = () => {
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email';
     }
-    if (!isLogin && !formData.phone.trim()) {
+    if (isRegister && !formData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
     }
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (!isLogin && formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    if (!isForgot) {
+      if (!formData.password) {
+        newErrors.password = 'Password is required';
+      } else if (isRegister && formData.password.length < 6) {
+        newErrors.password = 'Password must be at least 6 characters';
+      }
     }
-    if (!isLogin && formData.password !== formData.confirmPassword) {
+    if (isRegister && formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
     setErrors(newErrors);
@@ -61,9 +69,15 @@ const UserAuth = () => {
     if (!validateForm()) return;
     setLoading(true);
     setError('');
+    setInfo('');
     
     try {
-      if (isLogin) {
+      if (isForgot) {
+        const response = await apiClient.post('/password/forgot', { email: formData.email });
+        const message = response?.data?.message || 'If the email exists, a reset link has been sent.';
+        setInfo(message);
+        setError('');
+      } else if (isLogin) {
         const { user, error } = await signIn(formData.email, formData.password);
         if (user) {
           // Get the redirect URL from location state or default to homepage
@@ -94,10 +108,18 @@ const UserAuth = () => {
         }
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      const message = err?.response?.data?.message || err?.message || 'An error occurred. Please try again.';
+      setError(message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const switchMode = (nextMode) => {
+    setAuthMode(nextMode);
+    setError('');
+    setInfo('');
+    setErrors({});
   };
 
   return (
@@ -108,10 +130,12 @@ const UserAuth = () => {
           <div className="bg-card border border-border rounded-lg p-8 shadow-warm-lg">
             <div className="text-center mb-8">
               <h1 className="font-heading text-2xl font-bold text-foreground mb-2">
-                {isLogin ? 'Welcome Back' : 'Create Account'}
+                {isLogin ? 'Welcome Back' : isRegister ? 'Create Account' : 'Reset Password'}
               </h1>
               <p className="text-muted-foreground">
-                {isLogin ? 'Sign in to your account' : <span>Join <span className="text-royal-blue">Avira Udupu's</span> Family</span>}
+                {isLogin && 'Sign in to your account'}
+                {isRegister && (<span>Join <span className="text-royal-blue">Avira Udupu's</span> Family</span>)}
+                {isForgot && 'We will email you a reset link'}
               </p>
               {location.state?.message && (
                 <p className="text-primary text-sm font-medium mt-2">
@@ -124,8 +148,13 @@ const UserAuth = () => {
                 <p className="text-destructive text-sm">{error || errors.general}</p>
               </div>
             )}
+            {info && (
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mb-6">
+                <p className="text-primary text-sm">{info}</p>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
+              {isRegister && (
                 <Input
                   label="Full Name"
                   type="text"
@@ -145,7 +174,7 @@ const UserAuth = () => {
                 error={errors.email}
                 required
               />
-              {!isLogin && (
+              {isRegister && (
                 <Input
                   label="Phone Number"
                   type="tel"
@@ -156,16 +185,18 @@ const UserAuth = () => {
                   required
                 />
               )}
-              <Input
-                label="Password"
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                error={errors.password}
-                required
-              />
-              {!isLogin && (
+              {!isForgot && (
+                <Input
+                  label="Password"
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  error={errors.password}
+                  required
+                />
+              )}
+              {isRegister && (
                 <Input
                   label="Confirm Password"
                   type="password"
@@ -176,6 +207,17 @@ const UserAuth = () => {
                   required
                 />
               )}
+              {isLogin && (
+                <div className="text-right">
+                  <button
+                    type="button"
+                    className="text-sm text-primary hover:underline"
+                    onClick={() => switchMode('forgot')}
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+              )}
               <Button
                 type="submit"
                 variant="default"
@@ -183,17 +225,46 @@ const UserAuth = () => {
                 size="lg"
                 disabled={loading}
               >
-                {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
+                {loading ? 'Please wait...' : (isLogin ? 'Sign In' : isRegister ? 'Create Account' : 'Send Reset Link')}
               </Button>
             </form>
             <div className="mt-6 text-center">
-              <button
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-primary hover:underline font-medium"
-              >
-                {isLogin ? 'Don\'t have an account? Sign up' : 'Already have an account? Sign in'}
-              </button>
+              {isLogin && (
+                <button
+                  type="button"
+                  onClick={() => switchMode('register')}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Don't have an account? Sign up
+                </button>
+              )}
+              {isRegister && (
+                <button
+                  type="button"
+                  onClick={() => switchMode('login')}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Already have an account? Sign in
+                </button>
+              )}
+              {isForgot && (
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => switchMode('login')}
+                    className="text-primary hover:underline font-medium block w-full"
+                  >
+                    Remembered your password? Sign in
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => switchMode('register')}
+                    className="text-muted-foreground hover:text-foreground text-sm"
+                  >
+                    Need an account? Create one
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

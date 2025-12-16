@@ -4,6 +4,7 @@ import com.eduprajna.entity.*;
 import com.eduprajna.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,9 @@ public class OrderService {
     private final CheckoutSelectionRepository selectionRepo;
     private final AddressRepository addressRepo;
     private final com.eduprajna.repository.ProductRepository productRepo;
+    
+    @Autowired
+    private EmailService emailService;
 
     public OrderService(OrderRepository orderRepo, CartItemRepository cartRepo, 
                        CheckoutSelectionRepository selectionRepo, AddressRepository addressRepo,
@@ -163,11 +167,24 @@ public class OrderService {
         Order savedOrder = orderRepo.save(order);
         logger.info("Order created with ID: {} for user: {}", savedOrder.getId(), user.getEmail());
         
-        // 9. Clear cart after successful order creation
+        // 9. Send order confirmation email
+        try {
+            emailService.sendOrderConfirmationEmail(
+                user.getEmail(), 
+                user.getName(), 
+                savedOrder.getId().toString(), 
+                String.format("%.2f", savedOrder.getTotal())
+            );
+        } catch (Exception e) {
+            logger.error("Failed to send order confirmation email for order: {}", savedOrder.getId(), e);
+            // Don't fail the order if email fails
+        }
+        
+        // 10. Clear cart after successful order creation
         cartRepo.deleteByUser(user);
         logger.info("Cart cleared for user: {}", user.getEmail());
         
-        // 10. Update user's order count
+        // 11. Update user's order count
         user.incrementTotalOrders();
         
         return savedOrder;
@@ -320,6 +337,23 @@ public class OrderService {
         Order updatedOrder = orderRepo.save(order);
         
         logger.info("Order {} status updated from '{}' to '{}'", orderId, oldStatus, status);
+        
+        // Send order status update email
+        try {
+            User user = order.getUser();
+            if (user != null && user.getEmail() != null) {
+                emailService.sendOrderStatusEmail(
+                    user.getEmail(),
+                    user.getName(),
+                    orderId.toString(),
+                    status
+                );
+            }
+        } catch (Exception e) {
+            logger.error("Failed to send order status email for order: {}", orderId, e);
+            // Don't fail the status update if email fails
+        }
+        
         return updatedOrder;
     }
     

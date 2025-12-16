@@ -71,7 +71,16 @@ public class CartController {
                 return ResponseEntity.badRequest().body("Email is required");
             }
             
-            User user = requireUser(email);
+            // Get or create user
+            User user;
+            try {
+                user = requireUser(email);
+            } catch (RuntimeException e) {
+                logger.debug("User not found: {}, returning empty cart", email);
+                // Return empty cart for new users instead of error
+                return ResponseEntity.ok(List.of());
+            }
+            
             List<CartItemDTO> items = cartService.getCart(user).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -80,7 +89,7 @@ public class CartController {
             return ResponseEntity.ok(items);
         } catch (RuntimeException e) {
             logger.error("User not found for cart request: {}", email, e);
-            return ResponseEntity.status(404).body("User not found");
+            return ResponseEntity.ok(List.of()); // Return empty cart instead of error
         } catch (Exception e) {
             logger.error("Error getting cart for user: {}", email, e);
             return ResponseEntity.status(500).body("Internal server error while getting cart");
@@ -123,7 +132,9 @@ public class CartController {
             int quantity = body.get("quantity") == null ? 1 : ((Number) body.get("quantity")).intValue();
             
             // Extract variant information if provided
-            Long variantId = body.get("variantId") != null ? ((Number) body.get("variantId")).longValue() : inferredVariantId;
+            Long variantId = body.get("variantId") != null
+                ? Long.valueOf(((Number) body.get("variantId")).longValue())
+                : inferredVariantId;
             String variantName = body.get("variant") != null ? (String) body.get("variant") : null;
             String variantImage = body.get("variantImage") != null ? (String) body.get("variantImage") : null;
             String variantColor = body.get("variantColor") != null ? (String) body.get("variantColor") : null;
@@ -131,7 +142,15 @@ public class CartController {
             String weightUnit = body.get("weightUnit") != null ? (String) body.get("weightUnit") : null;
             Double price = body.get("price") != null ? ((Number) body.get("price")).doubleValue() : null;
             
-            User user = requireUser(email);
+            // Get or create user
+            User user;
+            try {
+                user = requireUser(email);
+            } catch (RuntimeException e) {
+                logger.warn("User not found: {}, creating new user", email);
+                user = userService.createUserIfNotExists(email);
+            }
+            
             CartItem ci = cartService.addToCart(user, productId, quantity, variantId, variantName, variantImage, variantColor, weightValue, weightUnit, price);
             
             logger.info("Added product {} to cart for user: {}", productId, email);
@@ -142,9 +161,12 @@ public class CartController {
         } catch (IllegalStateException e) {
             logger.warn("Validation failed while adding to cart: {}", e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (java.util.NoSuchElementException e) {
+            logger.error("Product not found: {}", e.getMessage());
+            return ResponseEntity.status(404).body("Product not found");
         } catch (RuntimeException e) {
-            logger.error("Error adding to cart for user: {}", email, e);
-            return ResponseEntity.status(404).body("User or product not found");
+            logger.error("Error adding to cart for user: {}, error: {}", email, e.getMessage(), e);
+            return ResponseEntity.status(404).body("Product not found or out of stock");
         } catch (Exception e) {
             logger.error("Error adding to cart for user: {}", email, e);
             return ResponseEntity.status(500).body("Internal server error while adding to cart");
@@ -183,7 +205,9 @@ public class CartController {
             }
 
             int quantity = ((Number) body.get("quantity")).intValue();
-            Long variantId = body.get("variantId") != null ? ((Number) body.get("variantId")).longValue() : inferredVariantId;
+            Long variantId = body.get("variantId") != null
+                ? Long.valueOf(((Number) body.get("variantId")).longValue())
+                : inferredVariantId;
             String variantName = body.get("variant") != null ? (String) body.get("variant") : null;
             String variantColor = body.get("variantColor") != null ? (String) body.get("variantColor") : null;
             

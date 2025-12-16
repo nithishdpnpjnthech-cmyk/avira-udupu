@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 /**
  * Entity to store password reset tokens
- * Tokens are valid for 24 hours (86400 seconds)
+ * Tokens store only a hash of the reset token, not the raw token
  */
 @Entity
 @Table(name = "password_reset_tokens")
@@ -15,8 +15,8 @@ public class PasswordResetToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(nullable = false, unique = true, length = 500)
-    private String token; // Unique reset token (UUID)
+    @Column(name = "token", nullable = false, unique = true, length = 500)
+    private String tokenHash; // Hash of the unique reset token
     
     @Column(nullable = false)
     private String email; // User's email address
@@ -39,8 +39,8 @@ public class PasswordResetToken {
     /**
      * Constructor with parameters
      */
-    public PasswordResetToken(String token, String email, LocalDateTime createdAt, LocalDateTime expiryTime) {
-        this.token = token;
+    public PasswordResetToken(String tokenHash, String email, LocalDateTime createdAt, LocalDateTime expiryTime) {
+        this.tokenHash = tokenHash;
         this.email = email;
         this.createdAt = createdAt;
         this.expiryTime = expiryTime;
@@ -56,12 +56,12 @@ public class PasswordResetToken {
         this.id = id;
     }
     
-    public String getToken() {
-        return token;
+    public String getTokenHash() {
+        return tokenHash;
     }
     
-    public void setToken(String token) {
-        this.token = token;
+    public void setTokenHash(String tokenHash) {
+        this.tokenHash = tokenHash;
     }
     
     public String getEmail() {

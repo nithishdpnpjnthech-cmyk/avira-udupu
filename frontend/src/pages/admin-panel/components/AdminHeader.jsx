@@ -21,7 +21,7 @@ const AdminHeader = ({ user, onToggleSidebar }) => {
           <Menu size={20} />
         </button>
         <h1 className="text-lg font-heading font-semibold text-foreground">
-          Roots Traditional - Admin
+          Avira Udupu - Admin
         </h1>
       </div>
 

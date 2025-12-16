@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '../../../components/AppIcon';
 import Image from '../../../components/AppImage';
@@ -9,6 +9,16 @@ const QuickViewModal = ({ product, isOpen, onClose, onAddToCart }) => {
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [displayImage, setDisplayImage] = useState(product?.image || product?.imageUrl);
+
+  // Sync modal state whenever product changes or modal opens
+  useEffect(() => {
+    if (!product) return;
+    const firstVariant = product?.variants?.[0] || null;
+    setSelectedVariant(firstVariant);
+    setQuantity(1);
+    setSelectedImageIndex(0);
+    setDisplayImage(firstVariant?.mainImage || product?.image || product?.imageUrl);
+  }, [product, isOpen]);
 
   if (!isOpen || !product) return null;
 

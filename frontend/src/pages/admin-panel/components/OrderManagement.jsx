@@ -89,7 +89,7 @@ const OrderManagement = () => {
     try {
       // Enhanced company settings
       const settings = {
-        siteName: "Roots Traditional",
+        siteName: "Avira Udupu",
         companyAddress: "Natural & Organic Products Hub, Bangalore, India",
         companyPhone: "+91 9845651468",
         companyEmail: "info@neenusnatural.com"
@@ -141,7 +141,7 @@ const OrderManagement = () => {
     try {
       // Enhanced company settings
       const settings = {
-        siteName: "Roots Traditional",
+        siteName: "Avira Udupu",
         companyAddress: "Natural & Organic Products Hub, Bangalore, India",
         companyPhone: "+91 9845651468",
         companyEmail: "info@neenusnatural.com"

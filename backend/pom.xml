@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.eduprajna</groupId>
-	<artifactId>sanathana-parampara</artifactId>
+	<artifactId>avira-udupu</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>sanathana-parampara</name>
+	<name>avira-udupu</name>
 	<description>Spring Boot project for managing e-commerce</description>
 	<url/>
 	<licenses>

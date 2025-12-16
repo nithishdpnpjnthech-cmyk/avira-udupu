@@ -2,7 +2,7 @@
 
 ## ✅ Completed: Frontend and Backend Separation
 
-The Roots Traditional e-commerce project has been successfully reorganized into a proper full-stack structure with separate frontend and backend directories.
+The Avira Udupu e-commerce project has been successfully reorganized into a proper full-stack structure with separate frontend and backend directories.
 
 ## 📁 New Project Structure
 

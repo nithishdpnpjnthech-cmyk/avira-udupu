@@ -38,18 +38,7 @@ const ProductCard = ({
       alert('This product is out of stock');
       return;
     }
-    const cartItem = {
-      id: product.id,
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      originalPrice: product.originalPrice,
-      image: product.image,
-      variant: 'Default',
-      category: product.category,
-      brand: product.brand,
-    };
-    onAddToCart?.(cartItem);
+    onAddToCart?.(product, selectedVariant, 1);
   };
 
   const handleWishlistToggle = (e) => {
@@ -154,16 +143,11 @@ const ProductCard = ({
           </span>
         </div>
 
-        {/* Color Label */}
+        {/* Color Label + Swatches on one line (wrap if overflow) */}
         {product?.variants && product.variants.length > 0 && (
-          <div className="mb-2">
+          <div className="flex flex-wrap items-center gap-2 mb-3">
             <span className="text-xs text-gray-600">Color:</span>
-          </div>
-        )}
-
-        {/* Color Variant Options */}
-        {product?.variants && product.variants.length > 0 && (
-          <div className="flex gap-1.5 mb-3">
+            <div className="flex gap-1.5 flex-wrap">
             {product.variants.slice(0, 5).map((variant, index) => {
               const colorValue = variant?.color?.toLowerCase() || '';
               const colorMap = {
@@ -208,6 +192,7 @@ const ProductCard = ({
                 />
               );
             })}
+            </div>
           </div>
         )}
 

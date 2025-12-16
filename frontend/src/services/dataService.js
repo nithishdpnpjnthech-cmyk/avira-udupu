@@ -68,7 +68,7 @@ const saveOrdersToStorage = () => {
 
 // Settings data
 const settings = {
-  siteName: "Roots Traditional",
+  siteName: "Avira Udupu",
   currency: "INR",
   shippingFee: 50,
   freeShippingThreshold: 500,

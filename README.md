@@ -1,4 +1,4 @@
-# Roots Traditional - E-commerce Platform
+# Avira Udupu - E-commerce Platform
 
 A full-stack e-commerce application for organic products with React frontend and Spring Boot backend.
 

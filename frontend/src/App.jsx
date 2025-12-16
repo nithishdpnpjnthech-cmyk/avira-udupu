@@ -13,6 +13,7 @@ import ProductDetailPage from './pages/product-detail-page';
 import ShoppingCart from './pages/shopping-cart';
 import CheckoutProcess from './pages/checkout-process';
 import UserAuth from './pages/user-auth';
+import ResetPassword from './pages/reset-password';
 import UserAccountDashboard from './pages/user-account-dashboard';
 import AdminLogin from './pages/admin-login';
 import AdminPanel from './pages/admin-panel';
@@ -88,6 +89,7 @@ function App() {
                 />
                 <Route path="/user-login" element={<UserAuth />} />
                 <Route path="/user-register" element={<UserAuth />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route 
                   path="/user-account-dashboard" 
                   element={

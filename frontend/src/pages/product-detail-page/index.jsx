@@ -239,22 +239,46 @@ const ProductDetailPage = () => {
             .slice(0, 8);
 
           // Normalize for RelatedProducts card structure
-          const normalizedRelated = sameCategory.map(p => ({
-            id: p?.id,
-            name: p?.name || p?.title,
-            image: resolveImageUrl(p?.image || p?.imageUrl || p?.thumbnailUrl),
-            rating: p?.rating || 4.5,
-            reviewCount: p?.reviewCount || 0,
-            badges: p?.badges || [],
-            variants: [
-              {
-                id: 'default',
-                weight: p?.weight || 'Default',
-                price: parseFloat(p?.price ?? p?.salePrice ?? 0) || 0,
-                originalPrice: parseFloat(p?.originalPrice ?? p?.price ?? p?.salePrice ?? 0) || 0
-              }
-            ]
-          }));
+          const normalizedRelated = sameCategory.map(p => {
+            const variantList = Array.isArray(p?.variants) ? p.variants : [];
+            const resolvedVariants = variantList.length > 0
+              ? variantList.map(v => ({
+                  id: v?.id,
+                  color: v?.color,
+                  weight: v?.weight,
+                  price: parseFloat(v?.price ?? v?.salePrice ?? p?.price ?? 0) || 0,
+                  originalPrice: parseFloat(v?.originalPrice ?? v?.price ?? p?.originalPrice ?? p?.price ?? 0) || 0,
+                  stock: v?.stockQuantity ?? v?.stock ?? null,
+                  mainImage: resolveImageUrl(v?.mainImage),
+                  subImage1: resolveImageUrl(v?.subImage1),
+                  subImage2: resolveImageUrl(v?.subImage2),
+                  subImage3: resolveImageUrl(v?.subImage3)
+                }))
+              : [{
+                  id: 'default',
+                  weight: p?.weight || 'Default',
+                  color: p?.color,
+                  price: parseFloat(p?.price ?? p?.salePrice ?? 0) || 0,
+                  originalPrice: parseFloat(p?.originalPrice ?? p?.price ?? p?.salePrice ?? 0) || 0,
+                  stock: p?.stockQuantity ?? p?.stock ?? null,
+                  mainImage: resolveImageUrl(p?.image || p?.imageUrl || p?.thumbnailUrl)
+                }];
+
+            const primaryVariant = resolvedVariants[0] || {};
+            const primaryImage = primaryVariant?.mainImage || resolveImageUrl(p?.image || p?.imageUrl || p?.thumbnailUrl);
+
+            return {
+              id: p?.id,
+              name: p?.name || p?.title,
+              image: primaryImage,
+              rating: p?.rating || 4.5,
+              reviewCount: p?.reviewCount || 0,
+              badges: p?.badges || [],
+              category: p?.category || p?.categoryId,
+              brand: p?.brand,
+              variants: resolvedVariants
+            };
+          });
           setRelatedProducts(normalizedRelated);
         } catch (e) {
           // Non-fatal if related fail; keep empty
@@ -281,35 +305,37 @@ const ProductDetailPage = () => {
   ];
 
   const handleAddToCart = (item) => {
-    if (!product) return;
-    
-    const variant = product?.variants?.find(v => v?.id === item?.variantId);
+    const targetProduct = item?.productData || product;
+    if (!targetProduct) return;
+
+    const variant = targetProduct?.variants?.find(v => String(v?.id) === String(item?.variantId))
+      || targetProduct?.variants?.[0];
     if (!variant) return;
 
     const productToAdd = {
-      id: item?.productId,
-      productId: item?.productId,
-      variantId: item?.variantId,
-      name: product?.name,
+      id: item?.productId || targetProduct?.id,
+      productId: item?.productId || targetProduct?.id,
+      variantId: item?.variantId || variant?.id,
+      name: targetProduct?.name,
       variant: item?.variant || variant?.color || variant?.weight,
-      price: parseFloat(variant?.price) || 0,
-      originalPrice: parseFloat(variant?.originalPrice) || parseFloat(variant?.price) || 0,
-      image: item?.image || variant?.mainImage || product?.images?.[0],
+      price: parseFloat(item?.price ?? variant?.price) || 0,
+      originalPrice: parseFloat(item?.originalPrice ?? variant?.originalPrice ?? variant?.price) || 0,
+      image: item?.image || variant?.mainImage || targetProduct?.images?.[0] || targetProduct?.image,
       color: item?.color || variant?.color,
-      category: product?.category,
-      brand: product?.brand
+      category: targetProduct?.category,
+      brand: targetProduct?.brand
     };
-    
+
     console.log('Detail Page - Adding to cart:', {
-      variantId: variant?.id,
-      variantColor: variant?.color,
-      variantPrice: variant?.price,
+      variantId: productToAdd.variantId,
+      variantColor: productToAdd.color,
+      variantPrice: productToAdd.price,
       variantMainImage: variant?.mainImage,
       finalImage: productToAdd.image,
       finalPrice: productToAdd.price,
       fullCartItem: productToAdd
     });
-    
+
     addToCart(productToAdd, item?.quantity || 1);
   };
 

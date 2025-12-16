@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Package, Users, ShoppingCart, DollarSign, TrendingUp, TrendingDown, 
+import {
+  Package, Users, ShoppingCart, DollarSign, TrendingUp, TrendingDown,
   AlertTriangle, Plus, BarChart3, Calendar, Eye, RefreshCw, Download, FileText
 } from 'lucide-react';
 import dataService from '../../../services/dataService';
 import userApi from '../../../services/userApi';
 import orderApi from '../../../services/orderApi';
 import productApi from '../../../services/productApi';
-import { 
-  exportToCSV, 
-  filterDataByDateRange, 
-  formatOrdersForCSV, 
-  formatUsersForCSV, 
-  formatProductsForCSV, 
+import {
+  exportToCSV,
+  filterDataByDateRange,
+  formatOrdersForCSV,
+  formatUsersForCSV,
+  formatProductsForCSV,
   formatRevenueDataForCSV,
-  generateSummaryReport 
+  generateSummaryReport
 } from '../../../utils/csvExport';
 
 const Dashboard = () => {
@@ -52,7 +52,7 @@ const Dashboard = () => {
         setShowExportMenu(false);
       }
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showExportMenu]);
@@ -60,7 +60,7 @@ const Dashboard = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      
+
       // Get all data from backend APIs
       const [productsResponse, usersResponse, ordersResponse, orderStats] = await Promise.all([
         // Force bypass cache so stock numbers reflect latest writes
@@ -78,38 +78,38 @@ const Dashboard = () => {
       const orders = Array.isArray(ordersResponse) ? ordersResponse : (ordersResponse?.data || []);
       // Backend already returns non-admin users from /api/admin/users
       const customerUsers = users;
-      
+
       // Store raw data for CSV export
       setRawData({
         products,
         users,
         orders
       });
-      
+
       // Calculate revenue metrics
       const computedTotalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
       const totalRevenue = (orderStats && typeof orderStats.totalRevenue === 'number')
         ? orderStats.totalRevenue
         : computedTotalRevenue;
       const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
-      
+
       // Calculate date-based metrics
       const now = new Date();
       const currentMonth = now.getMonth();
       const currentWeek = getWeekNumber(now);
-      
+
       const monthlyOrders = orders.filter(order => {
         const orderDate = new Date(order.createdAt);
         return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === now.getFullYear();
       });
-      
+
       const weeklyOrders = orders.filter(order => {
         const orderDate = new Date(order.createdAt);
         return getWeekNumber(orderDate) === currentWeek && orderDate.getFullYear() === now.getFullYear();
       });
-      
+
       const monthlyRevenue = monthlyOrders.reduce((sum, order) => sum + (order.total || 0), 0);
-      
+
       // Order status counts
       const pendingOrders = (orderStats && typeof orderStats.pendingOrders === 'number')
         ? orderStats.pendingOrders
@@ -121,19 +121,21 @@ const Dashboard = () => {
         const st = (order.status || '').toLowerCase();
         return st === 'delivered' || st === 'completed';
       }).length);
-      
+
       // Product analytics - include all variants with low stock
       const lowStockProducts = [];
       products.forEach(p => {
         if (p.variants && Array.isArray(p.variants)) {
           // Add each variant with low stock as a separate alert
-          p.variants.forEach(variant => {
+          p.variants.forEach((variant, idx) => {
             if ((variant.stockQuantity || 0) < 10) {
+              const fallbackVariantKey = `${p.id}-v${idx}`;
               lowStockProducts.push({
                 id: p.id,
                 productId: p.id,
                 name: p.name,
-                variantId: variant.id,
+                // Ensure we always carry a variant identifier so restock can target it
+                variantId: variant.id ?? variant.variantId ?? fallbackVariantKey,
                 color: variant.color,
                 weight: variant.weight,
                 stockQuantity: variant.stockQuantity,
@@ -158,7 +160,7 @@ const Dashboard = () => {
       const recentOrders = [...orders]
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         .slice(0, 5);
-      
+
       // Top selling products (based on order frequency)
       const productSales = {};
       orders.forEach(order => {
@@ -171,16 +173,16 @@ const Dashboard = () => {
           });
         }
       });
-      
+
       const topSellingProducts = Object.entries(productSales)
-        .sort(([,a], [,b]) => b - a)
+        .sort(([, a], [, b]) => b - a)
         .slice(0, 5)
         .map(([productId, quantity]) => {
           const product = products.find(p => p.id == productId);
           return product ? { ...product, soldQuantity: quantity } : null;
         })
         .filter(Boolean);
-      
+
       setStats({
         totalProducts: products.length,
         // Customers are the non-admin users returned by backend
@@ -196,7 +198,7 @@ const Dashboard = () => {
         lowStockProducts,
         topSellingProducts
       });
-      
+
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
@@ -204,88 +206,75 @@ const Dashboard = () => {
       setRefreshing(false);
     }
   };
-  
+
   const getWeekNumber = (date) => {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayNum = d.getUTCDay() || 7;
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-    return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
   };
-  
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await loadDashboardData();
   };
 
-  const handleQuickRestockProduct = async (productId, variantId) => {
+  const handleQuickRestockProduct = async (productId, variantId, variantColor) => {
     const restockAmount = prompt('Enter quantity to add to stock:');
-    if (restockAmount && !isNaN(restockAmount) && parseInt(restockAmount) > 0) {
-      try {
-        // Load current product details from backend
-        // Force fresh fetch to avoid stale cache after a write
-        const productsRes = await dataService.getProducts({ forceRefresh: true });
-        const product = (productsRes?.data || []).find(p => p.id === productId);
-        if (!product) {
-          alert('Product not found. Please refresh and try again.');
-          return;
-        }
+    const delta = parseInt(restockAmount, 10);
+    if (!restockAmount || Number.isNaN(delta) || delta <= 0) return;
 
-        let payload = { ...product };
-        let updatedItemName = product.name;
-        let newStock = 0;
-
-        console.log('=== Stock Update Debug ===');
-        console.log('Product ID:', productId);
-        console.log('Variant ID:', variantId);
-        console.log('Product variants:', product.variants);
-
-        // If this product has variants, update the specific variant
-        if (variantId && product.variants && Array.isArray(product.variants)) {
-          const variantIndex = product.variants.findIndex(v => v.id === variantId);
-          console.log('Variant Index:', variantIndex);
-          
-          if (variantIndex !== -1) {
-            const variant = product.variants[variantIndex];
-            newStock = (variant.stockQuantity || 0) + parseInt(restockAmount, 10);
-            
-            console.log('Found variant:', variant);
-            console.log('New stock for variant:', newStock);
-            
-            // Create a new variants array with the updated variant
-            const updatedVariants = [...product.variants];
-            updatedVariants[variantIndex] = {
-              ...variant,
-              stockQuantity: newStock,
-              inStock: newStock > 0
-            };
-            
-            payload.variants = updatedVariants;
-            updatedItemName = `${product.name} (${variant.color})`;
-            
-            console.log('Updated variants array:', updatedVariants);
-          }
-        } else {
-          // Fallback for products without variants
-          newStock = (product.stockQuantity || 0) + parseInt(restockAmount, 10);
-          payload.stockQuantity = newStock;
-          payload.inStock = newStock > 0;
-        }
-
-        console.log('Final payload:', payload);
-        
-        // Persist to backend
-        await productApi.update(productId, payload);
-
-        await loadDashboardData(); // Refresh data from backend
-        alert(`Stock updated! ${updatedItemName} now has ${newStock} items in stock.`);
-      } catch (error) {
-        console.error('Error updating stock:', error);
-        alert('Failed to update stock. Please try again.');
+    try {
+      // Pull a fresh copy of the product so variant stock is accurate
+      const product = await productApi.getById(productId, { forceRefresh: true });
+      if (!product) {
+        alert('Product not found. Please refresh and try again.');
+        return;
       }
+
+      const variants = Array.isArray(product.variants) ? product.variants : [];
+      let updatedItemName = product.name;
+      let newStock = delta;
+
+      if (variants.length > 0) {
+        const normalizedVariantId = variantId !== undefined && variantId !== null ? String(variantId) : null;
+
+        const variantMatch = normalizedVariantId
+          ? variants.find(v => String(v.id) === normalizedVariantId || String(v.variantId) === normalizedVariantId)
+          : null;
+
+        const colorMatch = !variantMatch && variantColor
+          ? variants.find(v => (v.color || '').toLowerCase() === variantColor.toString().toLowerCase())
+          : null;
+
+        const targetVariant = variantMatch || colorMatch || variants[0];
+
+        if (!targetVariant?.id) {
+          throw new Error('Variant ID missing; cannot update stock.');
+        }
+
+        newStock = (targetVariant.stockQuantity || 0) + delta;
+        await productApi.updateVariantStock(productId, targetVariant.id, newStock);
+        updatedItemName = `${product.name}${targetVariant.color ? ` (${targetVariant.color})` : ''}`;
+      } else {
+        // Fallback for products without variants
+        newStock = (product.stockQuantity || 0) + delta;
+        await productApi.update(productId, {
+          id: productId,
+          stockQuantity: newStock,
+          inStock: newStock > 0
+        });
+      }
+
+      await loadDashboardData(); // Refresh data from backend
+      alert(`Stock updated! ${updatedItemName} now has ${newStock} items in stock.`);
+    } catch (error) {
+      console.error('Error updating stock:', error);
+      alert('Failed to update stock. Please try again.');
     }
   };
-  
+
   const handleBulkRestock = () => {
     // Show modal or navigate to bulk stock management
     // alert('Bulk restock feature - would open a dedicated stock management interface');
@@ -374,7 +363,7 @@ const Dashboard = () => {
               <Download className="w-4 h-4" />
               <span>Export CSV</span>
             </button>
-            
+
             {showExportMenu && (
               <div className="absolute right-0 mt-2 w-64 bg-card border border-border rounded-lg shadow-lg z-50">
                 <div className="p-3">
@@ -512,7 +501,7 @@ const Dashboard = () => {
           color="success"
         />
       </div>
-      
+
       {/* Secondary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
@@ -563,10 +552,10 @@ const Dashboard = () => {
               <span className="font-semibold text-primary">₹{stats.monthlyRevenue.toLocaleString()}</span>
             </div>
             <div className="w-full bg-muted rounded-full h-3">
-              <div 
+              <div
                 className="bg-primary h-3 rounded-full transition-all duration-300"
-                style={{ 
-                  width: `${stats.totalRevenue > 0 ? Math.min((stats.monthlyRevenue / stats.totalRevenue) * 100, 100) : 0}%` 
+                style={{
+                  width: `${stats.totalRevenue > 0 ? Math.min((stats.monthlyRevenue / stats.totalRevenue) * 100, 100) : 0}%`
                 }}
               ></div>
             </div>
@@ -650,14 +639,13 @@ const Dashboard = () => {
                   </div>
                   <div className="flex items-center space-x-3">
                     <div className="text-right">
-                      <p className={`font-body font-bold ${
-                        (product.stockQuantity || 0) <= 5 ? 'text-destructive' : 'text-warning'
-                      }`}>
+                      <p className={`font-body font-bold ${(product.stockQuantity || 0) <= 5 ? 'text-destructive' : 'text-warning'
+                        }`}>
                         {product.stockQuantity || 0} left
                       </p>
                     </div>
                     <button
-                      onClick={() => handleQuickRestockProduct(product.productId, product.variantId)}
+                      onClick={() => handleQuickRestockProduct(product.productId, product.variantId, product.color)}
                       className="px-3 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors text-sm"
                     >
                       + Add
@@ -695,14 +683,13 @@ const Dashboard = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-body font-bold text-foreground">₹{(order.total || 0).toLocaleString()}</p>
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium capitalize mt-1 ${
-                      order.status === 'pending' ? 'bg-warning/20 text-warning' :
-                      order.status === 'processing' ? 'bg-primary/20 text-primary' :
-                      order.status === 'shipped' ? 'bg-blue-100 text-blue-600' :
-                      order.status === 'delivered' || order.status === 'completed' ? 'bg-success/20 text-success' :
-                      order.status === 'cancelled' ? 'bg-destructive/20 text-destructive' :
-                      'bg-muted text-muted-foreground'
-                    }`}>
+                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium capitalize mt-1 ${order.status === 'pending' ? 'bg-warning/20 text-warning' :
+                        order.status === 'processing' ? 'bg-primary/20 text-primary' :
+                          order.status === 'shipped' ? 'bg-blue-100 text-blue-600' :
+                            order.status === 'delivered' || order.status === 'completed' ? 'bg-success/20 text-success' :
+                              order.status === 'cancelled' ? 'bg-destructive/20 text-destructive' :
+                                'bg-muted text-muted-foreground'
+                      }`}>
                       {order.status}
                     </span>
                   </div>
