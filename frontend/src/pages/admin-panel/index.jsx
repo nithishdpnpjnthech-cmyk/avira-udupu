@@ -71,7 +71,6 @@ const AdminPanel = () => {
         user={currentUser}
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
-      
       <div className="flex h-[calc(100vh-64px)] overflow-hidden">
         <AdminSidebar
           activeSection={activeSection}
@@ -79,9 +78,8 @@ const AdminPanel = () => {
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
         />
-        
-        <main className="flex-1 lg:ml-64 p-6 overflow-auto">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 p-0 overflow-auto" style={{ marginLeft: '20px' }}>
+          <div className="w-full">
             {renderActiveSection()}
           </div>
         </main>

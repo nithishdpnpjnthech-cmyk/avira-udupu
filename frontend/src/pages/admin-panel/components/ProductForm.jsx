@@ -632,148 +632,146 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                   </div>
                 </div>
 
-                {/* Variant Images */}
-                <div className="space-y-3">
-                  <h5 className="text-sm font-semibold text-foreground">Images for {variant.color || 'this variant'}</h5>
-                  
-                  {/* Main Image */}
-                  <div>
-                    <label className="block text-xs font-medium text-foreground mb-1">
-                      Main Image *
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, variant.id, 'mainImage')}
-                      className="w-full px-2 py-1.5 border border-border rounded-md bg-background text-foreground text-xs file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                    />
-                    {variant.mainImage && (
-                      <div className="mt-2">
-                        <img
-                          src={URL.createObjectURL(variant.mainImage)}
-                          alt="Main"
-                          className="w-20 h-20 object-cover rounded-md border"
-                          onError={(e) => { e.currentTarget.src = '/assets/images/no_image.png'; }}
-                        />
-                      </div>
-                    )}
-                    {!variant.mainImage && variant.existingMainImage && (
-                      <div className="mt-2">
-                        <img
-                          src={variant.existingMainImage}
-                          alt="Main"
-                          className="w-20 h-20 object-cover rounded-md border"
-                          onError={(e) => { 
-                            console.warn('Failed to load main image from URL:', variant.existingMainImage);
-                            e.currentTarget.src = '/assets/images/no_image.png'; 
-                          }}
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">Existing image</p>
-                      </div>
-                    )}
-                    {!variant.mainImage && !variant.existingMainImage && (
-                      <p className="text-xs text-muted-foreground mt-1">No image uploaded yet</p>
-                    )}
-                  </div>
-
-                  {/* Sub Images Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {/* Sub Image 1 */}
+                {/* Variant Images - Only show in Add mode */}
+                { !product && (
+                  <div className="space-y-3">
+                    <h5 className="text-sm font-semibold text-foreground">Images for {variant.color || 'this variant'}</h5>
+                    {/* Main Image */}
                     <div>
                       <label className="block text-xs font-medium text-foreground mb-1">
-                        Sub Image 1
+                        Main Image *
                       </label>
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => handleImageUpload(e, variant.id, 'subImage1')}
-                        className="w-full px-2 py-1 border border-border rounded-md bg-background text-foreground text-xs file:mr-1 file:py-0.5 file:px-2 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                        onChange={(e) => handleImageUpload(e, variant.id, 'mainImage')}
+                        className="w-full px-2 py-1.5 border border-border rounded-md bg-background text-foreground text-xs file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                       />
-                      {(variant.subImage1 || variant.existingSubImage1) && (
-                        <div className="mt-1">
+                      {variant.mainImage && (
+                        <div className="mt-2">
                           <img
-                            src={variant.subImage1 ? URL.createObjectURL(variant.subImage1) : variant.existingSubImage1}
-                            alt="Sub 1"
-                            className="w-16 h-16 object-cover rounded-md border"
+                            src={URL.createObjectURL(variant.mainImage)}
+                            alt="Main"
+                            className="w-20 h-20 object-cover rounded-md border"
                             onError={(e) => { e.currentTarget.src = '/assets/images/no_image.png'; }}
                           />
                         </div>
                       )}
-                    </div>
-
-                    {/* Sub Image 2 */}
-                    <div>
-                      <label className="block text-xs font-medium text-foreground mb-1">
-                        Sub Image 2
-                      </label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, variant.id, 'subImage2')}
-                        className="w-full px-2 py-1 border border-border rounded-md bg-background text-foreground text-xs file:mr-1 file:py-0.5 file:px-2 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                      />
-                      {variant.subImage2 && (
-                        <div className="mt-1">
+                      {!variant.mainImage && variant.existingMainImage && (
+                        <div className="mt-2">
                           <img
-                            src={URL.createObjectURL(variant.subImage2)}
-                            alt="Sub 2"
-                            className="w-16 h-16 object-cover rounded-md border"
-                            onError={(e) => { e.currentTarget.src = '/assets/images/no_image.png'; }}
-                          />
-                        </div>
-                      )}
-                      {!variant.subImage2 && variant.existingSubImage2 && (
-                        <div className="mt-1">
-                          <img
-                            src={variant.existingSubImage2}
-                            alt="Sub 2"
-                            className="w-16 h-16 object-cover rounded-md border"
+                            src={variant.existingMainImage}
+                            alt="Main"
+                            className="w-20 h-20 object-cover rounded-md border"
                             onError={(e) => { 
-                              console.warn('Failed to load sub image 2:', variant.existingSubImage2);
+                              console.warn('Failed to load main image from URL:', variant.existingMainImage);
                               e.currentTarget.src = '/assets/images/no_image.png'; 
                             }}
                           />
+                          <p className="text-xs text-muted-foreground mt-1">Existing image</p>
                         </div>
+                      )}
+                      {!variant.mainImage && !variant.existingMainImage && (
+                        <p className="text-xs text-muted-foreground mt-1">No image uploaded yet</p>
                       )}
                     </div>
-
-                    {/* Sub Image 3 */}
-                    <div>
-                      <label className="block text-xs font-medium text-foreground mb-1">
-                        Sub Image 3
-                      </label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, variant.id, 'subImage3')}
-                        className="w-full px-2 py-1 border border-border rounded-md bg-background text-foreground text-xs file:mr-1 file:py-0.5 file:px-2 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                      />
-                      {variant.subImage3 && (
-                        <div className="mt-1">
-                          <img
-                            src={URL.createObjectURL(variant.subImage3)}
-                            alt="Sub 3"
-                            className="w-16 h-16 object-cover rounded-md border"
-                            onError={(e) => { e.currentTarget.src = '/assets/images/no_image.png'; }}
-                          />
-                        </div>
-                      )}
-                      {!variant.subImage3 && variant.existingSubImage3 && (
-                        <div className="mt-1">
-                          <img
-                            src={variant.existingSubImage3}
-                            alt="Sub 3"
-                            className="w-16 h-16 object-cover rounded-md border"
-                            onError={(e) => { 
-                              console.warn('Failed to load sub image 3:', variant.existingSubImage3);
-                              e.currentTarget.src = '/assets/images/no_image.png'; 
-                            }}
-                          />
-                        </div>
-                      )}
+                    {/* Sub Images Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {/* Sub Image 1 */}
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">
+                          Sub Image 1
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, variant.id, 'subImage1')}
+                          className="w-full px-2 py-1 border border-border rounded-md bg-background text-foreground text-xs file:mr-1 file:py-0.5 file:px-2 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                        />
+                        {(variant.subImage1 || variant.existingSubImage1) && (
+                          <div className="mt-1">
+                            <img
+                              src={variant.subImage1 ? URL.createObjectURL(variant.subImage1) : variant.existingSubImage1}
+                              alt="Sub 1"
+                              className="w-16 h-16 object-cover rounded-md border"
+                              onError={(e) => { e.currentTarget.src = '/assets/images/no_image.png'; }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                      {/* Sub Image 2 */}
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">
+                          Sub Image 2
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, variant.id, 'subImage2')}
+                          className="w-full px-2 py-1 border border-border rounded-md bg-background text-foreground text-xs file:mr-1 file:py-0.5 file:px-2 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                        />
+                        {variant.subImage2 && (
+                          <div className="mt-1">
+                            <img
+                              src={URL.createObjectURL(variant.subImage2)}
+                              alt="Sub 2"
+                              className="w-16 h-16 object-cover rounded-md border"
+                              onError={(e) => { e.currentTarget.src = '/assets/images/no_image.png'; }}
+                            />
+                          </div>
+                        )}
+                        {!variant.subImage2 && variant.existingSubImage2 && (
+                          <div className="mt-1">
+                            <img
+                              src={variant.existingSubImage2}
+                              alt="Sub 2"
+                              className="w-16 h-16 object-cover rounded-md border"
+                              onError={(e) => { 
+                                console.warn('Failed to load sub image 2:', variant.existingSubImage2);
+                                e.currentTarget.src = '/assets/images/no_image.png'; 
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                      {/* Sub Image 3 */}
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">
+                          Sub Image 3
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, variant.id, 'subImage3')}
+                          className="w-full px-2 py-1 border border-border rounded-md bg-background text-foreground text-xs file:mr-1 file:py-0.5 file:px-2 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                        />
+                        {variant.subImage3 && (
+                          <div className="mt-1">
+                            <img
+                              src={URL.createObjectURL(variant.subImage3)}
+                              alt="Sub 3"
+                              className="w-16 h-16 object-cover rounded-md border"
+                              onError={(e) => { e.currentTarget.src = '/assets/images/no_image.png'; }}
+                            />
+                          </div>
+                        )}
+                        {!variant.subImage3 && variant.existingSubImage3 && (
+                          <div className="mt-1">
+                            <img
+                              src={variant.existingSubImage3}
+                              alt="Sub 3"
+                              className="w-16 h-16 object-cover rounded-md border"
+                              onError={(e) => { 
+                                console.warn('Failed to load sub image 3:', variant.existingSubImage3);
+                                e.currentTarget.src = '/assets/images/no_image.png'; 
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             ))}
           </div>

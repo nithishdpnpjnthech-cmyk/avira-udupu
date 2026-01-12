@@ -53,7 +53,7 @@ const AdminSidebar = ({ activeSection, onSectionChange, isOpen, onClose }) => {
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         {/* Header */}
-        <div className="p-6 border-b border-border">
+        <div className="border-b border-border px-4 py-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-heading font-bold text-foreground">
               Admin Panel
@@ -68,7 +68,7 @@ const AdminSidebar = ({ activeSection, onSectionChange, isOpen, onClose }) => {
         </div>
 
         {/* Menu Items */}
-        <nav className="p-4 space-y-2">
+        <nav className="space-y-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -79,7 +79,7 @@ const AdminSidebar = ({ activeSection, onSectionChange, isOpen, onClose }) => {
                   onClose();
                 }}
                 className={`
-                  w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200
+                  w-full flex items-center space-x-3 px-2 py-2 rounded-lg text-left transition-colors duration-200
                   ${activeSection === item.id 
                     ? 'bg-primary text-primary-foreground' 
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'

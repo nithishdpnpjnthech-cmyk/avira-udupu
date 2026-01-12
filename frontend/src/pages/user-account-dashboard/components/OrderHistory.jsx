@@ -373,16 +373,16 @@ const OrderHistory = () => {
                       </h4>
                       <div className="bg-muted/30 rounded-lg p-3">
                         <p className="font-body text-sm text-foreground">
-                          {order?.shipping?.name || 'N/A'}
+                          {order?.shipping?.name || 'Not provided'}
                         </p>
                         <p className="font-caption text-sm text-muted-foreground">
-                          {order?.shipping?.street || 'N/A'}
+                          {order?.shipping?.street || 'Not provided'}
                         </p>
                         <p className="font-caption text-sm text-muted-foreground">
-                          {order?.shipping?.city || 'N/A'}, {order?.shipping?.state || 'N/A'} {order?.shipping?.pincode || 'N/A'}
+                          {order?.shipping?.city || '-'}, {order?.shipping?.state || '-'} {order?.shipping?.pincode || '-'}
                         </p>
                         <p className="font-caption text-sm text-muted-foreground">
-                          {order?.shipping?.phone || 'N/A'}
+                          {order?.shipping?.phone || '-'}
                         </p>
                       </div>
                     </div>
@@ -403,11 +403,11 @@ const OrderHistory = () => {
                         </div>
                         <div className="flex justify-between font-caption text-sm">
                           <span className="text-muted-foreground">Payment Method</span>
-                          <span className="font-data capitalize">{order?.paymentMethod || 'N/A'}</span>
+                          <span className="font-data capitalize">{order?.paymentMethod || 'Not provided'}</span>
                         </div>
                         <div className="flex justify-between font-caption text-sm">
                           <span className="text-muted-foreground">Delivery</span>
-                          <span className="font-data capitalize">{order?.deliveryOption || 'N/A'}</span>
+                          <span className="font-data capitalize">{order?.deliveryOption || 'Not provided'}</span>
                         </div>
                         <div className="flex justify-between font-body font-semibold pt-2 border-t border-border">
                           <span>Total</span>

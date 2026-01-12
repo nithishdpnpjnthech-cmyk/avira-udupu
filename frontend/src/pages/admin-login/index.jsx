@@ -1,5 +1,6 @@
 import { Eye, EyeOff, Shield } from 'lucide-react';
 import dataService from '../../services/dataService';
+import userApi from '../../services/userApi';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import React, { useState } from 'react';
@@ -22,25 +23,16 @@ const AdminLogin = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('https://nishmitha-roots-7.onrender.com/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const role = (data?.role || '').toLowerCase();
-        if (role === 'admin') {
-          localStorage.setItem('adminUser', JSON.stringify(data));
-          navigate('/admin-panel');
-        } else {
-          setError('You are not authorized as admin.');
-        }
+      const data = await userApi.login(formData);
+      const role = (data?.role || '').toLowerCase();
+      if (role === 'admin') {
+        localStorage.setItem('adminUser', JSON.stringify(data));
+        navigate('/admin-panel');
       } else {
-        setError('Invalid credentials');
+        setError('You are not authorized as admin.');
       }
     } catch (err) {
-      setError('Login failed. Please try again.');
+      setError(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }

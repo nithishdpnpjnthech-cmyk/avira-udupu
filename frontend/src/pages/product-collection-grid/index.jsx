@@ -191,7 +191,7 @@ const ProductCollectionGrid = () => {
           // Include stock fields when present; treat missing as unlimited
           stockQuantity: p?.stockQuantity ?? null,
           inStock: p?.inStock !== false, // Default to true if not specified
-          weight: p?.weight || 'N/A',
+          weight: p?.weight || '-',
           // Include variants array from backend with color information
           variants: Array.isArray(p?.variants) ? p.variants.map(v => ({
             id: v?.id,

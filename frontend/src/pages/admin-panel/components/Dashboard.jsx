@@ -586,7 +586,7 @@ const Dashboard = () => {
                 <div key={product.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <div className="flex-1">
                     <p className="font-body font-medium text-foreground">{product.name}</p>
-                    <p className="text-sm text-muted-foreground">{product.weight || 'N/A'}</p>
+                    <p className="text-sm text-muted-foreground">{product.weight || '-'}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-body font-bold text-primary">{product.soldQuantity} sold</p>
@@ -634,7 +634,7 @@ const Dashboard = () => {
                           {product.color}
                         </span>
                       )}
-                      <p className="text-sm text-muted-foreground">{product.weight || 'N/A'}</p>
+                      <p className="text-sm text-muted-foreground">{product.weight || '-'}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">

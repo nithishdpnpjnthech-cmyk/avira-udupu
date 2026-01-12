@@ -1,5 +1,92 @@
 
 import React, { useState, useEffect } from 'react';
+import productApi from '../../../services/productApi';
+// Modal that fetches and displays product/variant details for each order item
+const OrderDetailsModal = ({ order, onClose }) => {
+  const [detailedItems, setDetailedItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!order) return;
+    let isMounted = true;
+    const fetchDetails = async () => {
+      setLoading(true);
+      try {
+        const itemsWithDetails = await Promise.all((order.items || []).map(async (item) => {
+          // Try to get product and variant details if IDs are present
+          if (item.productId && item.variantId) {
+            try {
+              const product = await productApi.getById(item.productId);
+              const variant = (product.variants || []).find(v => v.id === item.variantId || v.variantId === item.variantId);
+              return {
+                ...item,
+                productName: product.name,
+                imageUrl: variant?.imageUrl || product.imageUrl || item.imageUrl,
+                color: variant?.color || item.color,
+                variantName: variant?.name || variant?.variantName || '',
+              };
+            } catch (e) {
+              // fallback to item data
+              return item;
+            }
+          }
+          return item;
+        }));
+        if (isMounted) setDetailedItems(itemsWithDetails);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    fetchDetails();
+    return () => { isMounted = false; };
+  }, [order]);
+
+  if (!order) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative">
+        <button onClick={onClose} className="absolute top-2 right-2 text-xl font-bold text-gray-400 hover:text-gray-700">&times;</button>
+        <h2 className="text-xl font-bold mb-2">Order #{order.id} Details</h2>
+        <div className="space-y-2 text-sm">
+          <div><span className="font-semibold">Customer:</span> {order.shipping?.name || order.user?.name || 'Customer'}</div>
+          <div><span className="font-semibold">Email:</span> {order.user?.email || '-'}</div>
+          <div><span className="font-semibold">Phone:</span> {order.shipping?.phone || '-'}</div>
+          <div><span className="font-semibold">Status:</span> {order.status}</div>
+          <div><span className="font-semibold">Total:</span> ₹{order.total?.toFixed(2) || '0.00'}</div>
+          <div><span className="font-semibold">Payment:</span> {order.paymentMethod || '-'}</div>
+          <div><span className="font-semibold">Date:</span> {order.createdAt ? new Date(order.createdAt).toLocaleString() : '-'}</div>
+          <div><span className="font-semibold">Shipping Address:</span> {order.shipping?.street || '-'}, {order.shipping?.city || ''} {order.shipping?.state || ''} {order.shipping?.pincode || ''}</div>
+        </div>
+        <div className="mt-4">
+          <h3 className="font-semibold mb-1">Items:</h3>
+          {loading ? (
+            <div className="text-center text-xs text-muted-foreground py-4">Loading item details...</div>
+          ) : (
+            <ul className="space-y-3">
+              {detailedItems.map((item, idx) => (
+                <li key={idx} className="flex items-center gap-3 border-b pb-2 last:border-b-0">
+                  {item.imageUrl && (
+                    <img src={item.imageUrl} alt={item.productName || item.name} className="w-12 h-12 object-cover rounded border" />
+                  )}
+                  <div>
+                    <div className="font-medium">
+                      {item.productName || item.name}
+                      {item.variantName ? <span className="ml-1 text-xs text-muted-foreground">({item.variantName})</span> : ''}
+                      x {item.quantity} @ ₹{item.price}
+                    </div>
+                    {item.color && (
+                      <div className="text-xs text-muted-foreground">Color: {item.color}</div>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 import { Search, Eye, Package, Truck, CheckCircle, Download, Printer, AlertCircle } from 'lucide-react';
 import orderApi from '../../../services/orderApi';
 import { Button } from '../../../components/ui/Button';
@@ -13,6 +100,7 @@ const OrderManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [processingInvoice, setProcessingInvoice] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
     loadOrders();
@@ -98,8 +186,8 @@ const OrderManagement = () => {
       // Enhanced customer data mapping with better fallbacks
       const customer = {
         name: order.shipping?.name || order.customerName || order.user?.name || 'Valued Customer',
-        email: order.customerEmail || order.user?.email || order.shipping?.email || 'N/A',
-        phone: order.shipping?.phone || order.customerPhone || order.user?.phone || 'N/A'
+        email: order.customerEmail || order.user?.email || order.shipping?.email || '-',
+        phone: order.shipping?.phone || order.customerPhone || order.user?.phone || '-'
       };
       
       // Enhanced order data with proper formatting matching backend structure
@@ -120,9 +208,9 @@ const OrderManagement = () => {
           name: customer.name,
           phone: customer.phone,
           street: 'Address not provided',
-          city: 'N/A',
-          state: 'N/A',
-          pincode: 'N/A'
+          city: '-',
+          state: '-',
+          pincode: '-'
         }
       };
       
@@ -150,8 +238,8 @@ const OrderManagement = () => {
       // Enhanced customer data mapping with better fallbacks
       const customer = {
         name: order.shipping?.name || order.customerName || order.user?.name || 'Valued Customer',
-        email: order.customerEmail || order.user?.email || order.shipping?.email || 'N/A',
-        phone: order.shipping?.phone || order.customerPhone || order.user?.phone || 'N/A'
+        email: order.customerEmail || order.user?.email || order.shipping?.email || '-',
+        phone: order.shipping?.phone || order.customerPhone || order.user?.phone || '-'
       };
       
       // Enhanced order data with proper formatting matching backend structure
@@ -172,9 +260,9 @@ const OrderManagement = () => {
           name: customer.name,
           phone: customer.phone,
           street: 'Address not provided',
-          city: 'N/A',
-          state: 'N/A',
-          pincode: 'N/A'
+          city: '-',
+          state: '-',
+          pincode: '-'
         }
       };
       
@@ -302,17 +390,17 @@ const OrderManagement = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-foreground">
-                        {order.shipping?.name || order.user?.name || 'N/A'}
+                        {order.shipping?.name || order.user?.name || 'Customer'}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {order.user?.email || 'N/A'}
+                        {order.user?.email || '-'}
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-foreground">₹{order.total?.toFixed(2) || '0.00'}</div>
                     <div className="text-sm text-muted-foreground capitalize">
-                      {order.paymentMethod || 'N/A'}
+                      {order.paymentMethod || 'Not specified'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -322,10 +410,17 @@ const OrderManagement = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                    {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
+                    {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setSelectedOrder(order)}
+                        className="p-1 text-primary hover:text-primary/80"
+                        title="View Order Details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
                       <select
                         value={order.status}
                         onChange={(e) => updateOrderStatus(order.id, e.target.value)}
@@ -383,7 +478,9 @@ const OrderManagement = () => {
           <p className="text-muted-foreground">No orders found matching your criteria.</p>
         </div>
       )}
-    </div>
+    {/* Order Details Modal */}
+    <OrderDetailsModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />
+  </div>
   );
 };
 
